@@ -1,4 +1,4 @@
-import { Rm95Leads } from "@/features/backoffice-currently-hot-leads/_components/Rm95Leads";
+import { CurrentlyHot95rm } from "@/features/backoffice-currently-hot/_components/CurrentlyHot95rm";
 import React from "react";
 
 export const metadata = {
@@ -12,5 +12,5 @@ export const metadata = {
 };
 
 export default function page() {
-  return <Rm95Leads />;
+  return <CurrentlyHot95rm />;
 }

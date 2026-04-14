@@ -1,4 +1,5 @@
 export {
+  CampaignBadge,
   CompanySymbolBadge,
   StatusBadge,
   TimezoneBadge,

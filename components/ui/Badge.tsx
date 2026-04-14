@@ -38,6 +38,19 @@ const CONTACT_TYPE_STYLES: Record<string, string> = {
   DNC: "border-red-300 bg-red-100 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-300",
 };
 
+const CAMPAIGN_TYPE_STYLES: Record<string, string> = {
+  "Current Interest":
+    "border-cyan-200 bg-cyan-50 text-cyan-700 dark:border-cyan-800 dark:bg-cyan-950/40 dark:text-cyan-300",
+  Reactivation:
+    "border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-800 dark:bg-orange-950/40 dark:text-orange-300",
+  Inbound:
+    "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300",
+  Outbound:
+    "border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300",
+  Referral:
+    "border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-800 dark:bg-violet-950/40 dark:text-violet-300",
+};
+
 const TIMEZONE_STYLES = [
   "border-blue-200 bg-blue-100 text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300",
   "border-emerald-200 bg-emerald-100 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300",
@@ -123,6 +136,27 @@ export const TypeBadge = ({
       className={badgeClassName(
         "inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold",
         styles[value] ??
+          "border-slate-300 bg-slate-100 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300",
+        className,
+      )}
+    >
+      {value}
+    </span>
+  );
+};
+
+export const CampaignBadge = ({
+  value,
+  className,
+}: {
+  value: string;
+  className?: string;
+}) => {
+  return (
+    <span
+      className={badgeClassName(
+        "inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold",
+        CAMPAIGN_TYPE_STYLES[value] ??
           "border-slate-300 bg-slate-100 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300",
         className,
       )}

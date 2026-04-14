@@ -1,4 +1,4 @@
-import { BentonLeads } from "@/features/backoffice-currently-hot-leads/_components/BentonLeads";
+import { CurrentlyHotBenton } from "@/features/backoffice-currently-hot/_components/CurrentlyHotBenton";
 import React from "react";
 
 export const metadata = {
@@ -12,5 +12,5 @@ export const metadata = {
 };
 
 export default function page() {
-  return <BentonLeads />;
+  return <CurrentlyHotBenton />;
 }

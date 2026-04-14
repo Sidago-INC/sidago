@@ -9,18 +9,18 @@ import { Table, type Column } from "@/components/ui/Table";
 import React, { useMemo } from "react";
 import {
   assigneeOptions,
+  closedContactsData,
+  ClosedContactRow,
   contactTypeOptions,
   getCompanySymbol,
   getCompanySymbolOptions,
-  LeadRow,
   leadOptions,
   leadTypeOptions,
-  rm95CurrentlyHotLeadsData,
   timezoneOptions,
 } from "../_lib/data";
 
-export function Rm95Leads() {
-  const columns = useMemo<Column<LeadRow>[]>(
+export function ClosedContactsTable() {
+  const columns = useMemo<Column<ClosedContactRow>[]>(
     () => [
       {
         title: "Lead",
@@ -33,18 +33,14 @@ export function Rm95Leads() {
         key: "companySymbol",
         getValue: (row) => getCompanySymbol(row.companyName),
         type: "select",
-        options: getCompanySymbolOptions(rm95CurrentlyHotLeadsData).map(
-          (value) => ({
-            label: value,
-            value,
-          }),
-        ),
+        options: getCompanySymbolOptions(closedContactsData).map((value) => ({
+          label: value,
+          value,
+        })),
         render: (row) => (
           <CompanySymbolBadge
             symbol={getCompanySymbol(row.companyName)}
-            index={rm95CurrentlyHotLeadsData.findIndex(
-              (item) => item.email === row.email,
-            )}
+            index={closedContactsData.findIndex((item) => item.email === row.email)}
           />
         ),
       },
@@ -56,16 +52,11 @@ export function Rm95Leads() {
         title: "Timezone",
         key: "timezone",
         type: "select",
-        options: timezoneOptions.map((value) => ({
-          label: value,
-          value,
-        })),
+        options: timezoneOptions.map((value) => ({ label: value, value })),
         render: (row) => (
           <TimezoneBadge
             timezone={row.timezone}
-            index={rm95CurrentlyHotLeadsData.findIndex(
-              (item) => item.email === row.email,
-            )}
+            index={closedContactsData.findIndex((item) => item.email === row.email)}
           />
         ),
       },
@@ -77,32 +68,32 @@ export function Rm95Leads() {
         render: (row) => <TypeBadge value={row.contactType} kind="contact" />,
       },
       {
-        title: "95RM-Lead Type",
-        key: "rm95LeadType",
+        title: "Lead Type",
+        key: "leadType",
         type: "select",
         options: leadTypeOptions.map((value) => ({ label: value, value })),
-        render: (row) => <TypeBadge value={row.rm95LeadType} kind="lead" />,
+        render: (row) => <TypeBadge value={row.leadType} kind="lead" />,
       },
       {
-        title: "95RM-To be Called by",
-        key: "rm95ToBeCalledBy",
+        title: "Lead Type (Benton)",
+        key: "bentonLeadType",
+        type: "select",
+        options: leadTypeOptions.map((value) => ({ label: value, value })),
+        render: (row) => <TypeBadge value={row.bentonLeadType} kind="lead" />,
+      },
+      {
+        title: "SVG - To Be Called By",
+        key: "svgToBeCalledBy",
         type: "select",
         options: assigneeOptions.map((value) => ({ label: value, value })),
       },
       {
-        title: "95RM-Last Call Date",
-        key: "rm95LastCallDate",
-        type: "date",
+        title: "Benton - To Be Called By",
+        key: "bentonToBeCalledBy",
+        type: "select",
+        options: assigneeOptions.map((value) => ({ label: value, value })),
       },
-      {
-        title: "95RM-Date Become Hot",
-        key: "rm95DateBecomeHot",
-        type: "date",
-      },
-      {
-        title: "Last Action Date (95RM, SVG, Benton)",
-        key: "lastActionDate",
-      },
+      { title: "Last Action Date", key: "lastActionDate" },
     ],
     [],
   );
@@ -110,9 +101,9 @@ export function Rm95Leads() {
   return (
     <div className="min-h-full">
       <Table
-        data={rm95CurrentlyHotLeadsData}
+        data={closedContactsData}
         columns={columns}
-        title="Currently Hot Leads - 95RM"
+        title="Closed Contacts"
       />
     </div>
   );

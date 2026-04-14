@@ -9,7 +9,6 @@ import { Table, type Column } from "@/components/ui/Table";
 import React, { useMemo } from "react";
 import {
   assigneeOptions,
-  bentonCurrentlyHotLeadsData,
   contactTypeOptions,
   getCompanySymbol,
   getCompanySymbolOptions,
@@ -19,9 +18,19 @@ import {
   timezoneOptions,
 } from "../_lib/data";
 
-export function BentonLeads() {
-  const columns = useMemo<Column<LeadRow>[]>(
-    () => [
+type CurrentlyHotTableProps = {
+  data: LeadRow[];
+  title: string;
+  variant: "svg" | "95rm" | "benton";
+};
+
+export function CurrentlyHotTable({
+  data,
+  title,
+  variant,
+}: CurrentlyHotTableProps) {
+  const columns = useMemo<Column<LeadRow>[]>(() => {
+    const baseColumns: Column<LeadRow>[] = [
       {
         title: "Lead",
         key: "lead",
@@ -33,18 +42,14 @@ export function BentonLeads() {
         key: "companySymbol",
         getValue: (row) => getCompanySymbol(row.companyName),
         type: "select",
-        options: getCompanySymbolOptions(bentonCurrentlyHotLeadsData).map(
-          (value) => ({
-            label: value,
-            value,
-          }),
-        ),
+        options: getCompanySymbolOptions(data).map((value) => ({
+          label: value,
+          value,
+        })),
         render: (row) => (
           <CompanySymbolBadge
             symbol={getCompanySymbol(row.companyName)}
-            index={bentonCurrentlyHotLeadsData.findIndex(
-              (item) => item.email === row.email,
-            )}
+            index={data.findIndex((item) => item.email === row.email)}
           />
         ),
       },
@@ -63,9 +68,7 @@ export function BentonLeads() {
         render: (row) => (
           <TimezoneBadge
             timezone={row.timezone}
-            index={bentonCurrentlyHotLeadsData.findIndex(
-              (item) => item.email === row.email,
-            )}
+            index={data.findIndex((item) => item.email === row.email)}
           />
         ),
       },
@@ -76,6 +79,89 @@ export function BentonLeads() {
         options: contactTypeOptions.map((value) => ({ label: value, value })),
         render: (row) => <TypeBadge value={row.contactType} kind="contact" />,
       },
+    ];
+
+    if (variant === "svg") {
+      return [
+        ...baseColumns,
+        {
+          title: "SVG-Lead Type",
+          key: "svgLeadType",
+          type: "select",
+          options: leadTypeOptions.map((value) => ({ label: value, value })),
+          render: (row) => <TypeBadge value={row.svgLeadType} kind="lead" />,
+        },
+        {
+          title: "SVG-To be Called by",
+          key: "svgToBeCalledBy",
+          type: "select",
+          options: assigneeOptions.map((value) => ({ label: value, value })),
+        },
+        {
+          title: "SVG-Last Call Date",
+          key: "svgLastCallDate",
+          type: "date",
+        },
+        {
+          title: "Benton-Lead Type",
+          key: "bentonLeadType",
+          type: "select",
+          options: leadTypeOptions.map((value) => ({ label: value, value })),
+          render: (row) => <TypeBadge value={row.bentonLeadType} kind="lead" />,
+        },
+        {
+          title: "Benton-To be Called by",
+          key: "bentonToBeCalledBy",
+          type: "select",
+          options: assigneeOptions.map((value) => ({ label: value, value })),
+        },
+        {
+          title: "Date Become Hot",
+          key: "svgDateBecomeHot",
+          type: "date",
+        },
+        {
+          title: "Last Action Date (SVG, Benton)",
+          key: "lastActionDate",
+        },
+      ];
+    }
+
+    if (variant === "95rm") {
+      return [
+        ...baseColumns,
+        {
+          title: "95RM-Lead Type",
+          key: "rm95LeadType",
+          type: "select",
+          options: leadTypeOptions.map((value) => ({ label: value, value })),
+          render: (row) => <TypeBadge value={row.rm95LeadType} kind="lead" />,
+        },
+        {
+          title: "95RM-To be Called by",
+          key: "rm95ToBeCalledBy",
+          type: "select",
+          options: assigneeOptions.map((value) => ({ label: value, value })),
+        },
+        {
+          title: "95RM-Last Call Date",
+          key: "rm95LastCallDate",
+          type: "date",
+        },
+        {
+          title: "95RM-Date Become Hot",
+          key: "rm95DateBecomeHot",
+          type: "date",
+        },
+        {
+          title: "Last Action Date (95RM, SVG, Benton)",
+          key: "lastActionDate",
+        },
+      ];
+    }
+
+    return [
+      ...baseColumns,
       {
         title: "SVG-Lead Type",
         key: "svgLeadType",
@@ -121,17 +207,12 @@ export function BentonLeads() {
         title: "Last Action Date (SVG, Benton)",
         key: "lastActionDate",
       },
-    ],
-    [],
-  );
+    ];
+  }, [data, variant]);
 
   return (
     <div className="min-h-full">
-      <Table
-        data={bentonCurrentlyHotLeadsData}
-        columns={columns}
-        title="Currently Hot Leads - Benton"
-      />
+      <Table data={data} columns={columns} title={title} />
     </div>
   );
 }

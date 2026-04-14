@@ -1,8 +1,8 @@
-import { CurrentlyHotSvg } from "@/features/backoffice-currently-hot/_components/CurrentlyHotSvg";
+import { RecentInterestSvg } from "@/features/backoffice-recent-interest/_components/RecentInterestSvg";
 import React from "react";
 
 export const metadata = {
-  title: "Currently Hot Leads SVG | Sidago CRM",
+  title: "Recent Interest SVG | Sidago CRM",
   description:
     "Sidago CRM is a secure and scalable customer relationship management platform designed to help businesses manage leads, track interactions, and build stronger customer connections with ease.",
   robots: {
@@ -12,5 +12,5 @@ export const metadata = {
 };
 
 export default function page() {
-  return <CurrentlyHotSvg />;
+  return <RecentInterestSvg />;
 }

@@ -32,6 +32,7 @@ type Props<T> = {
   columns: Column<T>[];
   isLoading?: boolean;
   emptyText?: string;
+  emptyState?: React.ReactNode;
   title: string;
   description?: string;
 };
@@ -102,6 +103,7 @@ export function Table<T>({
   title,
   description,
   emptyText = "No data found",
+  emptyState,
 }: Props<T>) {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const tableElementRef = useRef<HTMLTableElement | null>(null);
@@ -470,7 +472,7 @@ export function Table<T>({
   // 🔹 Loading
   if (isLoading) {
     return (
-      <div className="bg-white rounded-2xl shadow p-4 space-y-3">
+      <div className="bg-white shadow p-4 space-y-3">
         {Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="h-10 bg-gray-100 rounded animate-pulse" />
         ))}
@@ -481,8 +483,10 @@ export function Table<T>({
   // 🔹 Empty
   if (!data || data.length === 0) {
     return (
-      <div className="bg-white rounded-2xl shadow p-10 text-center text-gray-500">
-        {emptyText}
+      <div className="overflow-hidden ">
+        {emptyState ?? (
+          <div className="p-10 text-center text-gray-500">{emptyText}</div>
+        )}
       </div>
     );
   }
