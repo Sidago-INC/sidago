@@ -3,8 +3,10 @@
 import { useMutation } from "@tanstack/react-query";
 import { authApi } from "@/lib/services/auth.service";
 import { tokenService } from "@/lib/token";
+import { getDashboardRouteForRole, setAuthNotice } from "@/lib/auth-routing";
 import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import { delay } from "@/lib/utils";
+import { logout as clearSessionAndRedirect } from "@/lib/api";
 
 type MutationError = unknown;
 
@@ -85,7 +87,7 @@ export function useLogin() {
       await tokenService.setTokens(data.accessToken, data.refreshToken);
       showSuccessToast("Login successful! Redirecting to dashboard...");
       await delay(500);
-      window.location.href = "/dashboard";
+      window.location.href = getDashboardRouteForRole(data.user.role);
     },
     onError: (error: MutationError) => {
       showErrorToast(error);
@@ -97,9 +99,8 @@ export function useLogout() {
   return useMutation({
     mutationFn: async () => Promise.resolve(),
     onSuccess: () => {
-      tokenService.clear();
-      showSuccessToast("Logged out successfully!");
-      window.location.href = "/";
+      setAuthNotice("You have been logged out successfully.");
+      clearSessionAndRedirect();
     },
   });
 }

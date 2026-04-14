@@ -37,12 +37,11 @@ export async function POST(req: Request) {
       );
     }
 
-    const passwordRegex = /^\d{6}$/;
-    if (!passwordRegex.test(password)) {
+    if (typeof password !== "string" || password.length < 6) {
       return NextResponse.json(
         {
           success: false,
-          message: "Password must be exactly 6 digits",
+          message: "Password must be at least 6 characters",
         },
         { status: 400 },
       );
@@ -57,7 +56,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           success: false,
-          message: "Invalid email or password",
+          message: "Credentials not matched",
         },
         { status: 401 },
       );
@@ -68,6 +67,12 @@ export async function POST(req: Request) {
       message: "Login successful",
       accessToken: user.accessToken,
       refreshToken: user.refreshToken,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch {
     return NextResponse.json(

@@ -15,6 +15,10 @@ export function HasRole({
 
   if (!user) return fallback;
 
+  if (user.role === "admin") {
+    return <>{children}</>;
+  }
+
   const roles = Array.isArray(name) ? name : [name];
   if (!roles.includes(user.role)) {
     return fallback;

@@ -84,4 +84,4 @@ The mock login API validates `email` and `password`. The "username" below is the
 
 - Mock users are defined in `lib/mocks/users.ts`.
 - The mock login route is implemented in `app/api/auth/login/route.ts`.
-- Passwords must be exactly 6 digits in the current mock auth flow.
+- Passwords must be at least 6 characters in the current mock auth flow.

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import FormHeading from "@/components/layouts/public/FormHeading";
 import {
@@ -12,6 +12,8 @@ import {
 import { Button, Input, Wave } from "@/components/ui";
 import Link from "next/link";
 import { useLogin } from "@/hooks/useAuthActions";
+import { consumeAuthNotice } from "@/lib/auth-routing";
+import { showInfoToast } from "@/lib/toast";
 
 export default function Form() {
   const { mutate: loginAction, isPending } = useLogin();
@@ -25,6 +27,14 @@ export default function Form() {
     email?: boolean;
     password?: boolean;
   }>({});
+
+  useEffect(() => {
+    const notice = consumeAuthNotice();
+
+    if (notice) {
+      showInfoToast(notice);
+    }
+  }, []);
 
   const validateSingleField = (name: "email" | "password", value: string) => {
     let error: string | null = null;

@@ -1,16 +1,15 @@
-import React from "react";
-import Dashboard from "./components/Dashboard";
+import RoleDashboardRedirect from "./components/RoleDashboardRedirect";
 
 export const metadata = {
-  title: "Agent Dashboard | Sidago CRM",
+  title: "Dashboard | Sidago CRM",
   description:
-    "Sidago CRM is a secure and scalable customer relationship management platform designed to help businesses manage leads, track interactions, and build stronger customer connections with ease.",
+    "Sidago CRM dashboard routing page that sends signed-in users to the correct dashboard for their role.",
   robots: {
     index: false,
     follow: false,
   },
 };
 
-export default function page() {
-  return <Dashboard />;
+export default function DashboardPage() {
+  return <RoleDashboardRedirect />;
 }

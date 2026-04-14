@@ -17,18 +17,22 @@ export const SidebarItem = ({ item, isCollapsed, isActive }: Props) => {
     <Link
       href={item.href}
       title={item.label}
-      className={`group flex cursor-pointer items-center rounded-lg p-2 transition-all duration-300 md:w-full ${
+      className={`group flex cursor-pointer items-center rounded-xl border p-2 transition-all duration-300 md:w-full ${
         isCollapsed ? "justify-center" : "justify-start"
       } ${
         isActive
-          ? "bg-indigo-600 text-white shadow-md shadow-indigo-200 dark:bg-indigo-500 dark:shadow-indigo-950/40"
-          : "text-slate-500 hover:bg-indigo-50 hover:text-indigo-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-indigo-300"
+          ? "border-indigo-500 bg-indigo-600 text-white shadow-md shadow-indigo-200 dark:border-indigo-400 dark:bg-indigo-500 dark:shadow-indigo-950/40"
+          : "border-transparent text-slate-500 hover:bg-indigo-50 hover:text-indigo-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-indigo-300"
       }`}
     >
       <div className="flex items-center gap-3">
         <Icon
           size={18}
-          className={isActive ? "text-white" : "group-hover:text-indigo-700"}
+          className={
+            isActive
+              ? "text-white"
+              : "group-hover:text-indigo-700 dark:group-hover:text-indigo-300"
+          }
         />
         {!isCollapsed && (
           <motion.span

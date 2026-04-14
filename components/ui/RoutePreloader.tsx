@@ -14,26 +14,66 @@ export function RoutePreloader({
 }) {
   const pathname = usePathname();
   const { isLoading } = useAuth();
-  const [routeLoading, setRouteLoading] = useState(true);
+  const [routeLoading, setRouteLoading] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const previousPathnameRef = useRef(pathname);
 
   useEffect(() => {
-    setRouteLoading(true);
+    if (previousPathnameRef.current === pathname) {
+      return;
+    }
+
+    previousPathnameRef.current = pathname;
+
+    if (startTimerRef.current) {
+      clearTimeout(startTimerRef.current);
+    }
 
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
+
+    startTimerRef.current = setTimeout(() => {
+      setRouteLoading(true);
+    }, 0);
 
     timerRef.current = setTimeout(() => {
       setRouteLoading(false);
     }, minDurationMs);
 
     return () => {
+      if (startTimerRef.current) {
+        clearTimeout(startTimerRef.current);
+      }
+
       if (timerRef.current) {
         clearTimeout(timerRef.current);
       }
     };
   }, [pathname, minDurationMs]);
+
+  useEffect(() => {
+    const clearRouteLoading = () => {
+      if (startTimerRef.current) {
+        clearTimeout(startTimerRef.current);
+      }
+
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+
+      setRouteLoading(false);
+    };
+
+    window.addEventListener("popstate", clearRouteLoading);
+    window.addEventListener("pageshow", clearRouteLoading);
+
+    return () => {
+      window.removeEventListener("popstate", clearRouteLoading);
+      window.removeEventListener("pageshow", clearRouteLoading);
+    };
+  }, []);
 
   const show = isLoading || routeLoading;
 

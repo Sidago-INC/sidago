@@ -1,10 +1,12 @@
 import { tokenService } from "./token";
+import { setAuthNotice } from "./auth-routing";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 async function request(url: string, options: RequestInit = {}, retry = true) {
   await tokenService.waitForInit();
   const token = tokenService.getAccessToken();
+  const shouldRefreshOnUnauthorized = !url.startsWith("/auth/login");
 
   const res = await fetch(`${BASE_URL}${url}`, {
     ...options,
@@ -16,14 +18,14 @@ async function request(url: string, options: RequestInit = {}, retry = true) {
     credentials: "include",
   });
 
-  if (res.status === 401 && retry) {
+  if (res.status === 401 && retry && shouldRefreshOnUnauthorized) {
     const refreshed = await refreshToken();
 
     if (!refreshed) {
       const hadToken = tokenService.getAccessToken();
 
       if (hadToken) {
-        logout();
+        logout("Your session has expired. Please sign in again.");
       }
       throw { status: 401, message: ["Unauthorized"] };
     }
@@ -72,8 +74,13 @@ async function refreshToken() {
   }
 }
 
-export function logout() {
+export function logout(message?: string) {
   tokenService.clear();
+
+  if (message) {
+    setAuthNotice(message);
+  }
+
   window.location.href = "/";
 }
 

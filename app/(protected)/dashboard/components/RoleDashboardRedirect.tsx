@@ -5,7 +5,7 @@ import { getDashboardRouteForRole } from "@/lib/auth-routing";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-export function GuestRoute({ children }: { children: React.ReactNode }) {
+export default function RoleDashboardRedirect() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
@@ -13,11 +13,7 @@ export function GuestRoute({ children }: { children: React.ReactNode }) {
     if (!isLoading && user) {
       router.replace(getDashboardRouteForRole(user.role));
     }
-  }, [user, isLoading, router]);
+  }, [isLoading, router, user]);
 
-  if (isLoading) return null;
-
-  if (user) return null;
-
-  return <>{children}</>;
+  return null;
 }
