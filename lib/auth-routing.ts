@@ -21,6 +21,14 @@ export function hasRouteAccess(role: UserRole, pathname: string): boolean {
   }
 
   if (role === "admin") {
+    if (
+      pathname === "/agent/dashboard" ||
+      pathname === "/manager/dashboard" ||
+      pathname === "/backspace/dashboard"
+    ) {
+      return false;
+    }
+
     return (
       pathname.startsWith("/admin/") ||
       pathname.startsWith("/agent/") ||
