@@ -34,9 +34,8 @@ export function BarChart({
           return (
             <div
               key={agent.recordId}
-              className="flex h-50 flex-1 flex-col items-center gap-1"
+              className="flex flex-1 flex-col items-center gap-1"
             >
-              <div className="flex-1" />
               <span className="text-xs font-bold leading-none text-gray-700 dark:text-gray-300">
                 {value}
               </span>

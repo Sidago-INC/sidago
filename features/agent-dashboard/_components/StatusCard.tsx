@@ -3,7 +3,7 @@ import { AgentIdentity } from "./AgentIdentity";
 import { MetricTile } from "./MetricTile";
 import { Panel } from "./Panel";
 import { WinnerBadge } from "./WinnerBadge";
-import { getAgentColor, getAgentDetailStats } from "../_lib/utils";
+import { getAgentDetailStats } from "../_lib/utils";
 import clsx from "clsx";
 
 interface StatusCardProps {
@@ -13,8 +13,6 @@ interface StatusCardProps {
 
 export default function StatusCard({ agent, index }: StatusCardProps) {
   const stats = getAgentDetailStats(agent);
-  const color = getAgentColor(index);
-  console.log(color);
 
   return (
     <Panel
@@ -39,8 +37,7 @@ export default function StatusCard({ agent, index }: StatusCardProps) {
               label={item.label}
               value={item.value}
               className={clsx(
-                "rounded-lg px-4 py-2 dark:bg-gray-800",
-                color.light,
+                "rounded-lg px-4 py-2 bg-indigo-50 dark:bg-gray-800",
               )}
               labelClassName="mb-1 text-[10px] uppercase text-gray-500 dark:text-gray-400"
               valueClassName="text-lg font-bold text-[#003aa0] dark:text-blue-400"
