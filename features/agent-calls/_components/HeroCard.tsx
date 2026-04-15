@@ -1,6 +1,7 @@
 import { Lead } from "@/types";
 import { TypeBadge, TimezoneBadge } from "@/components/ui";
 import { Building2, BriefcaseBusiness } from "lucide-react";
+import { LeadStatBox } from "./LeadStatBox";
 
 export function HeroCard({ currentLead }: { currentLead: Lead }) {
   return (
@@ -17,24 +18,8 @@ export function HeroCard({ currentLead }: { currentLead: Lead }) {
         </div>
 
         <div className="flex gap-4 text-center">
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 dark:border-gray-600 dark:bg-gray-700/50">
-            <p className="mb-0.5 flex items-center justify-center gap-1 text-xs font-medium text-slate-400 dark:text-gray-500">
-              <Building2 className="h-3.5 w-3.5" />
-              Company
-            </p>
-            <p className="text-sm font-semibold text-slate-700 dark:text-gray-200">
-              {currentLead.company_name}
-            </p>
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 dark:border-gray-600 dark:bg-gray-700/50">
-            <p className="mb-0.5 flex items-center justify-center gap-1 text-xs font-medium text-slate-400 dark:text-gray-500">
-              <BriefcaseBusiness className="h-3.5 w-3.5" />
-              Role
-            </p>
-            <p className="text-sm font-semibold text-slate-700 dark:text-gray-200">
-              {currentLead.role}
-            </p>
-          </div>
+          <LeadStatBox icon={Building2} label="Company" value={currentLead.company_name} />
+          <LeadStatBox icon={BriefcaseBusiness} label="Role" value={currentLead.role} />
         </div>
       </div>
     </div>

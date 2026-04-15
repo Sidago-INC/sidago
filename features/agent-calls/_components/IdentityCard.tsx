@@ -1,9 +1,10 @@
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Mail, UserRound } from "lucide-react";
 import { CallsFormState } from "@/types";
 
-type IdentityCardProps = {
+type Props = {
   form: CallsFormState;
   leadName: string;
   onChange: (patch: Partial<CallsFormState>) => void;
@@ -11,32 +12,17 @@ type IdentityCardProps = {
   contactTypeOptions: string[];
 };
 
-export function IdentityCard({
-  form,
-  leadName,
-  onChange,
-  leadTypeOptions,
-  contactTypeOptions,
-}: IdentityCardProps) {
-  const leadTypeSelectOptions = leadTypeOptions.map((option) => ({
-    label: option,
-    value: option,
-  }));
-  const contactTypeSelectOptions = contactTypeOptions.map((option) => ({
-    label: option,
-    value: option,
-  }));
+export function IdentityCard({ form, leadName, onChange, leadTypeOptions, contactTypeOptions }: Props) {
+  const leadTypeSelectOptions = leadTypeOptions.map((option) => ({ label: option, value: option }));
+  const contactTypeSelectOptions = contactTypeOptions.map((option) => ({ label: option, value: option }));
 
   return (
     <div className="space-y-4">
-      <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-gray-500">
-        Identity
-      </p>
+      <SectionLabel>Identity</SectionLabel>
+
       <div className="space-y-3">
         <div>
-          <p className="mb-0.5 text-xs text-slate-400 dark:text-gray-500">
-            Full Name
-          </p>
+          <p className="mb-0.5 text-xs text-slate-400 dark:text-gray-500">Full Name</p>
           <p className="flex items-center gap-2 font-semibold text-slate-800 dark:text-gray-100">
             <UserRound className="h-4 w-4 text-slate-400 dark:text-gray-500" />
             {leadName}
@@ -62,10 +48,8 @@ export function IdentityCard({
           <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
             Email
           </label>
-
           <div className="relative">
             <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-gray-500" />
-
             <Input
               type="email"
               value={form.email}

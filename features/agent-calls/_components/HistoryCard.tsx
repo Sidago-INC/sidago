@@ -1,27 +1,23 @@
 import { LucideIcon } from "lucide-react";
+import { CardShell } from "@/components/ui/CardShell";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 
-export function HistoryCard({
-  title,
-  value,
-  icon: Icon,
-  className = "",
-}: {
+type Props = {
   title: string;
   value: string;
   icon: LucideIcon;
   className?: string;
-}) {
+};
+
+export function HistoryCard({ title, value, icon, className }: Props) {
   return (
-    <div
-      className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800 ${className}`}
-    >
-      <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-gray-500">
-        <Icon className="h-4 w-4" />
+    <CardShell className={className}>
+      <SectionLabel icon={icon} className="mb-3">
         {title}
-      </p>
+      </SectionLabel>
       <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-600 dark:text-gray-300">
         {value || "-"}
       </p>
-    </div>
+    </CardShell>
   );
 }

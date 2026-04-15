@@ -1,12 +1,12 @@
 import { Lead } from "@/types";
+import { CardShell } from "@/components/ui/CardShell";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Phone } from "lucide-react";
 
 export function PhoneCard({ currentLead }: { currentLead: Lead }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-gray-500">
-        Phone
-      </p>
+    <CardShell>
+      <SectionLabel className="mb-3">Phone</SectionLabel>
       <a
         href={`tel:${currentLead.phone}`}
         className="group flex items-center gap-2 text-lg font-bold text-sky-600 transition-colors hover:text-sky-500 dark:text-sky-400"
@@ -16,6 +16,6 @@ export function PhoneCard({ currentLead }: { currentLead: Lead }) {
         </span>
         {currentLead.phone}
       </a>
-    </div>
+    </CardShell>
   );
 }
