@@ -1,8 +1,6 @@
 import { Agent } from "@/types";
-import { CompanySymbolBadge } from "@/components/ui";
+import { CompanySymbolBadge, StatusCard as UiStatusCard } from "@/components/ui";
 import { AgentIdentity } from "./AgentIdentity";
-import { MetricTile } from "./MetricTile";
-import { Panel } from "./Panel";
 import { WinnerBadge } from "./WinnerBadge";
 import { getAgentColor, getAgentDetailStats } from "../_lib/utils";
 import clsx from "clsx";
@@ -17,11 +15,10 @@ export default function StatusCard({ agent, index }: StatusCardProps) {
   const color = getAgentColor(index);
 
   return (
-    <Panel
+    <UiStatusCard
       className="w-full border-[#e5e7ff] dark:border-gray-800 dark:bg-gray-900"
       bodyClassName="p-6"
-    >
-      <div className="space-y-6">
+      header={
         <AgentIdentity
           agent={agent}
           index={index}
@@ -29,25 +26,18 @@ export default function StatusCard({ agent, index }: StatusCardProps) {
           avatarSquare
           nameClassName="text-xl font-bold text-gray-900 dark:text-gray-100"
           metaClassName="text-sm"
-          aside={agent.monthly_winner ? <WinnerBadge /> : undefined}
         />
-
-        <div className="grid grid-cols-3 gap-3">
-          {stats.map((item) => (
-            <MetricTile
-              key={item.label}
-              label={item.label}
-              value={item.value}
-              className={clsx(
-                "rounded-lg px-4 py-2 dark:bg-gray-800",
-                color.light,
-              )}
-              labelClassName="mb-1 text-[10px] uppercase text-gray-500 dark:text-gray-400"
-              valueClassName="text-lg font-bold text-[#003aa0] dark:text-blue-400"
-            />
-          ))}
-        </div>
-      </div>
-    </Panel>
+      }
+      aside={agent.monthly_winner ? <WinnerBadge /> : undefined}
+      metrics={stats.map((item) => ({
+        id: item.label,
+        label: item.label,
+        value: item.value,
+        className: clsx("rounded-lg px-4 py-2 dark:bg-gray-800", color.light),
+        labelClassName:
+          "mb-1 text-[10px] uppercase text-gray-500 dark:text-gray-400",
+        valueClassName: "text-lg font-bold text-[#003aa0] dark:text-blue-400",
+      }))}
+    />
   );
 }

@@ -17,6 +17,7 @@ export { Preloader } from "./Preloader";
 export { RoutePreloader } from "./RoutePreloader";
 export { SectionLabel } from "./SectionLabel";
 export { Select } from "./Select";
+export { StatusCard } from "./StatusCard";
 export { Wave } from "./Spinner";
 export { Table } from "./Table";
 export { Textarea } from "./Textarea";
