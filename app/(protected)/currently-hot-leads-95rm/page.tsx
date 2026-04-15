@@ -1,8 +1,8 @@
-import { BackofficeLeaderboard } from "@/features/backoffice-leaderboard/_components/BackofficeLeaderboard";
+import { CurrentlyHot95rm } from "@/features/backoffice-currently-hot/_components/CurrentlyHot95rm";
 import React from "react";
 
 export const metadata = {
-  title: "Backoffice Leaderboard | Sidago CRM",
+  title: "Currently Hot Leads 95RM | Sidago CRM",
   description:
     "Sidago CRM is a secure and scalable customer relationship management platform designed to help businesses manage leads, track interactions, and build stronger customer connections with ease.",
   robots: {
@@ -12,5 +12,5 @@ export const metadata = {
 };
 
 export default function page() {
-  return <BackofficeLeaderboard />;
+  return <CurrentlyHot95rm />;
 }

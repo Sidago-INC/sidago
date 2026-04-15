@@ -2,48 +2,50 @@ import { type UserRole } from "./navigation";
 
 export const AUTH_NOTICE_KEY = "sidago_auth_notice";
 
+const agentRoutes = new Set(["/dashboard", "/calls"]);
+
+const backofficeRoutes = new Set([
+  "/dashboard",
+  "/currently-hot-leads-svg",
+  "/currently-hot-leads-95rm",
+  "/currently-hot-leads-benton",
+  "/recent-interest-svg",
+  "/recent-interest-95rm",
+  "/recent-interest-benton",
+  "/unassigned-hot-leads-svg",
+  "/unassigned-hot-leads-95rm",
+  "/unassigned-hot-leads-benton",
+  "/ever-been-hot-svg",
+  "/ever-been-hot-95rm",
+  "/ever-been-hot-benton",
+  "/monthly-stats-points",
+  "/closed-contacts",
+]);
+
+const allProtectedRoutes = new Set([...agentRoutes, ...backofficeRoutes]);
+
 export function getDashboardRouteForRole(role: UserRole): string {
   switch (role) {
     case "agent":
-      return "/agent/dashboard";
     case "backoffice":
-      return "/manager/dashboard";
     case "admin":
-      return "/admin/dashboard";
+      return "/dashboard";
     default:
       return "/";
   }
 }
 
 export function hasRouteAccess(role: UserRole, pathname: string): boolean {
-  if (pathname === "/dashboard") {
-    return true;
-  }
-
   if (role === "admin") {
-    if (
-      pathname === "/agent/dashboard" ||
-      pathname === "/manager/dashboard" ||
-      pathname === "/backspace/dashboard"
-    ) {
-      return false;
-    }
-
-    return (
-      pathname.startsWith("/admin/") ||
-      pathname.startsWith("/agent/") ||
-      pathname.startsWith("/backoffice/")
-    );
+    return allProtectedRoutes.has(pathname);
   }
 
   if (role === "agent") {
-    return pathname.startsWith("/agent/") || pathname === "/agent/dashboard";
+    return agentRoutes.has(pathname);
   }
 
   if (role === "backoffice") {
-    return (
-      pathname.startsWith("/backoffice/") || pathname === "/manager/dashboard"
-    );
+    return backofficeRoutes.has(pathname);
   }
 
   return false;

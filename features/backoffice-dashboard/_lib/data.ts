@@ -5,6 +5,7 @@ export type BackofficeLeaderboardAgent = {
   callsToday: number;
   hotLeadsToday: number;
   currentHotLeads: number;
+  todayWinner?: boolean;
 };
 
 export const backofficeLeaderboardAgents: BackofficeLeaderboardAgent[] = [
@@ -15,6 +16,7 @@ export const backofficeLeaderboardAgents: BackofficeLeaderboardAgent[] = [
     callsToday: 0,
     hotLeadsToday: 0,
     currentHotLeads: 1,
+    todayWinner: true,
   },
   {
     id: "svg-2",
@@ -41,3 +43,7 @@ export const backofficeLeaderboardAgents: BackofficeLeaderboardAgent[] = [
     currentHotLeads: 1,
   },
 ];
+
+export const todayWinner =
+  backofficeLeaderboardAgents.find((agent) => agent.todayWinner) ??
+  backofficeLeaderboardAgents[0];
