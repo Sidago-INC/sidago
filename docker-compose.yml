@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  nextjs-app:
+    container_name: crm-frontapp
+    build: .
+    ports:
+      - "${PORT}:${PORT}"
+    env_file:
+      - .env
+    restart: always
