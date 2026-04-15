@@ -61,7 +61,11 @@ const outcomes = [
   },
 ];
 
-export function CallOutcomeCard({ onSelect }: { onSelect: (value: string) => void }) {
+export function CallOutcomeCard({
+  onSelect,
+}: {
+  onSelect: (value: string) => void;
+}) {
   return (
     <CardShell>
       <SectionLabel className="mb-4">Call Outcome</SectionLabel>

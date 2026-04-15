@@ -5,7 +5,6 @@ import { Table, type Column } from "@/components/ui/Table";
 import React, { useMemo } from "react";
 import {
   assigneeOptions,
-  closedContactsData,
   ClosedContactRow,
   contactTypeOptions,
   getCompanySymbol,
@@ -15,7 +14,12 @@ import {
   timezoneOptions,
 } from "../_lib/data";
 
-export function ClosedContactsTable() {
+type ClosedContactsTableProps = {
+  data: ClosedContactRow[];
+  title: string;
+};
+
+export function ClosedContactsTable({ data, title }: ClosedContactsTableProps) {
   const columns = useMemo<Column<ClosedContactRow>[]>(
     () => [
       {
@@ -29,16 +33,14 @@ export function ClosedContactsTable() {
         key: "companySymbol",
         getValue: (row) => getCompanySymbol(row.companyName),
         type: "select",
-        options: getCompanySymbolOptions(closedContactsData).map((value) => ({
+        options: getCompanySymbolOptions(data).map((value) => ({
           label: value,
           value,
         })),
         render: (row) => (
           <CompanySymbolBadge
             symbol={getCompanySymbol(row.companyName)}
-            index={closedContactsData.findIndex(
-              (item) => item.email === row.email,
-            )}
+            index={data.findIndex((item) => item.email === row.email)}
           />
         ),
       },
@@ -54,9 +56,7 @@ export function ClosedContactsTable() {
         render: (row) => (
           <TimezoneBadge
             timezone={row.timezone}
-            index={closedContactsData.findIndex(
-              (item) => item.email === row.email,
-            )}
+            index={data.findIndex((item) => item.email === row.email)}
           />
         ),
       },
@@ -75,7 +75,7 @@ export function ClosedContactsTable() {
         render: (row) => <TypeBadge value={row.leadType} kind="lead" />,
       },
       {
-        title: "Lead Type (Benton)",
+        title: "Lead Type Benton",
         key: "bentonLeadType",
         type: "select",
         options: leadTypeOptions.map((value) => ({ label: value, value })),
@@ -95,16 +95,12 @@ export function ClosedContactsTable() {
       },
       { title: "Last Action Date", key: "lastActionDate" },
     ],
-    [],
+    [data],
   );
 
   return (
     <div className="min-h-full">
-      <Table
-        data={closedContactsData}
-        columns={columns}
-        title="Closed Contacts"
-      />
+      <Table data={data} columns={columns} title={title} />
     </div>
   );
 }

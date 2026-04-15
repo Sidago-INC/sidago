@@ -13,7 +13,12 @@ type Props = {
   onSkip: () => void;
 };
 
-export function CallsHeader({ leads, currentIndex, onSelectLead, onSkip }: Props) {
+export function CallsHeader({
+  leads,
+  currentIndex,
+  onSelectLead,
+  onSkip,
+}: Props) {
   return (
     <header className="sticky top-0 z-10 border-b border-slate-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4">

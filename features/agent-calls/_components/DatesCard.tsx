@@ -11,7 +11,12 @@ type Props = {
   onChangeCallBackDate: (value: string) => void;
 };
 
-export function DatesCard({ callBackDate, lastCalledDate, lastFixedDate, onChangeCallBackDate }: Props) {
+export function DatesCard({
+  callBackDate,
+  lastCalledDate,
+  lastFixedDate,
+  onChangeCallBackDate,
+}: Props) {
   return (
     <CardShell className="space-y-3">
       <SectionLabel>Dates</SectionLabel>
@@ -22,8 +27,16 @@ export function DatesCard({ callBackDate, lastCalledDate, lastFixedDate, onChang
         onChange={onChangeCallBackDate}
       />
 
-      <DateReadonlyRow icon={Clock4} label="Last Called" value={lastCalledDate} />
-      <DateReadonlyRow icon={Wrench} label="Last Fixed Date" value={lastFixedDate} />
+      <DateReadonlyRow
+        icon={Clock4}
+        label="Last Called"
+        value={lastCalledDate}
+      />
+      <DateReadonlyRow
+        icon={Wrench}
+        label="Last Fixed Date"
+        value={lastFixedDate}
+      />
     </CardShell>
   );
 }

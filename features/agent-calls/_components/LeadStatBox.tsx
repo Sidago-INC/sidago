@@ -14,7 +14,9 @@ export function LeadStatBox({ icon: Icon, label, value }: Props) {
         <Icon className="h-3.5 w-3.5" />
         {label}
       </p>
-      <p className="text-sm font-semibold text-slate-700 dark:text-gray-200">{value}</p>
+      <p className="text-sm font-semibold text-slate-700 dark:text-gray-200">
+        {value}
+      </p>
     </div>
   );
 }

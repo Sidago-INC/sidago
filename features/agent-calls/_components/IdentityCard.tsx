@@ -12,9 +12,21 @@ type Props = {
   contactTypeOptions: string[];
 };
 
-export function IdentityCard({ form, leadName, onChange, leadTypeOptions, contactTypeOptions }: Props) {
-  const leadTypeSelectOptions = leadTypeOptions.map((option) => ({ label: option, value: option }));
-  const contactTypeSelectOptions = contactTypeOptions.map((option) => ({ label: option, value: option }));
+export function IdentityCard({
+  form,
+  leadName,
+  onChange,
+  leadTypeOptions,
+  contactTypeOptions,
+}: Props) {
+  const leadTypeSelectOptions = leadTypeOptions.map((option) => ({
+    label: option,
+    value: option,
+  }));
+  const contactTypeSelectOptions = contactTypeOptions.map((option) => ({
+    label: option,
+    value: option,
+  }));
 
   return (
     <div className="space-y-4">
@@ -22,7 +34,9 @@ export function IdentityCard({ form, leadName, onChange, leadTypeOptions, contac
 
       <div className="space-y-3">
         <div>
-          <p className="mb-0.5 text-xs text-slate-400 dark:text-gray-500">Full Name</p>
+          <p className="mb-0.5 text-xs text-slate-400 dark:text-gray-500">
+            Full Name
+          </p>
           <p className="flex items-center gap-2 font-semibold text-slate-800 dark:text-gray-100">
             <UserRound className="h-4 w-4 text-slate-400 dark:text-gray-500" />
             {leadName}

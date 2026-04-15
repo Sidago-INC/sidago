@@ -18,8 +18,16 @@ export function HeroCard({ currentLead }: { currentLead: Lead }) {
         </div>
 
         <div className="flex gap-4 text-center">
-          <LeadStatBox icon={Building2} label="Company" value={currentLead.company_name} />
-          <LeadStatBox icon={BriefcaseBusiness} label="Role" value={currentLead.role} />
+          <LeadStatBox
+            icon={Building2}
+            label="Company"
+            value={currentLead.company_name}
+          />
+          <LeadStatBox
+            icon={BriefcaseBusiness}
+            label="Role"
+            value={currentLead.role}
+          />
         </div>
       </div>
     </div>

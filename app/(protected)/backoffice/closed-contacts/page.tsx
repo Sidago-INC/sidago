@@ -1,4 +1,4 @@
-import { ClosedContactsTable } from "@/features/backoffice-closed-contacts/_components/ClosedContactsTable";
+import { ClosedContacts } from "@/features/backoffice-closed-contacts/_components/ClosedContacts";
 import React from "react";
 
 export const metadata = {
@@ -12,5 +12,5 @@ export const metadata = {
 };
 
 export default function page() {
-  return <ClosedContactsTable />;
+  return <ClosedContacts />;
 }

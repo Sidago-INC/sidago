@@ -75,64 +75,65 @@ app/
 ### `components/ui/` — Base UI library
 
 All primitive and feedback components. Import from the barrel:
+
 ```ts
 import { Button, CardShell, SectionLabel, Modal } from "@/components/ui";
 ```
 
-| File | Purpose |
-|------|---------|
-| `Button.tsx` | Generic button |
-| `Input.tsx` | Text input |
-| `Textarea.tsx` | Multi-line input |
-| `Select.tsx` | Dropdown select |
-| `Card.tsx` | Generic card + CardContent |
-| `CardShell.tsx` | **Reusable card wrapper** (rounded-2xl, border, shadow, dark mode) |
-| `SectionLabel.tsx` | **Reusable section heading** (uppercase tracking, optional icon) |
-| `Badge.tsx` | TypeBadge, CampaignBadge, StatusBadge, TimezoneBadge, CompanySymbolBadge |
-| `Modal.tsx` | Dialog modal with direction animations |
-| `Confirmation.tsx` | Confirm/cancel dialog |
-| `EmptyState.tsx` | Empty data placeholder |
-| `ErrorState.tsx` | Error display |
-| `Spinner.tsx` | Wave loading spinner |
-| `Preloader.tsx` | Full-page loading screen |
-| `RoutePreloader.tsx` | Route transition loading |
-| `Table.tsx` | Data table |
-| `index.ts` | Barrel export for all of the above |
+| File                 | Purpose                                                                  |
+| -------------------- | ------------------------------------------------------------------------ |
+| `Button.tsx`         | Generic button                                                           |
+| `Input.tsx`          | Text input                                                               |
+| `Textarea.tsx`       | Multi-line input                                                         |
+| `Select.tsx`         | Dropdown select                                                          |
+| `Card.tsx`           | Generic card + CardContent                                               |
+| `CardShell.tsx`      | **Reusable card wrapper** (rounded-2xl, border, shadow, dark mode)       |
+| `SectionLabel.tsx`   | **Reusable section heading** (uppercase tracking, optional icon)         |
+| `Badge.tsx`          | TypeBadge, CampaignBadge, StatusBadge, TimezoneBadge, CompanySymbolBadge |
+| `Modal.tsx`          | Dialog modal with direction animations                                   |
+| `Confirmation.tsx`   | Confirm/cancel dialog                                                    |
+| `EmptyState.tsx`     | Empty data placeholder                                                   |
+| `ErrorState.tsx`     | Error display                                                            |
+| `Spinner.tsx`        | Wave loading spinner                                                     |
+| `Preloader.tsx`      | Full-page loading screen                                                 |
+| `RoutePreloader.tsx` | Route transition loading                                                 |
+| `Table.tsx`          | Data table                                                               |
+| `index.ts`           | Barrel export for all of the above                                       |
 
 ### `components/guards/` — Route protection
 
-| File | Purpose |
-|------|---------|
-| `PrivateRoute.tsx` | Redirects unauthenticated users to login |
-| `GuestRoute.tsx` | Redirects authenticated users away from auth pages |
-| `HasRole.tsx` | Renders children only if user has the required role |
+| File               | Purpose                                             |
+| ------------------ | --------------------------------------------------- |
+| `PrivateRoute.tsx` | Redirects unauthenticated users to login            |
+| `GuestRoute.tsx`   | Redirects authenticated users away from auth pages  |
+| `HasRole.tsx`      | Renders children only if user has the required role |
 
 ### `components/layouts/protected/` — Authenticated shell
 
-| File | Purpose |
-|------|---------|
-| `AuthLayout.tsx` | Main layout: sidebar + header + content area |
-| `Sidebar.tsx` | Collapsible navigation sidebar (Framer Motion) |
-| `SidebarItem.tsx` | Individual nav link item |
-| `Header.tsx` | Top bar with profile, notifications, theme toggle |
-| `Mobilebar.tsx` | Bottom navigation for mobile |
-| `Notification.tsx` | Notification popover |
-| `Profile.tsx` | User avatar + dropdown menu |
-| `ThemeToggle.tsx` | Dark/light mode switch |
+| File               | Purpose                                           |
+| ------------------ | ------------------------------------------------- |
+| `AuthLayout.tsx`   | Main layout: sidebar + header + content area      |
+| `Sidebar.tsx`      | Collapsible navigation sidebar (Framer Motion)    |
+| `SidebarItem.tsx`  | Individual nav link item                          |
+| `Header.tsx`       | Top bar with profile, notifications, theme toggle |
+| `Mobilebar.tsx`    | Bottom navigation for mobile                      |
+| `Notification.tsx` | Notification popover                              |
+| `Profile.tsx`      | User avatar + dropdown menu                       |
+| `ThemeToggle.tsx`  | Dark/light mode switch                            |
 
 ### `components/layouts/public/` — Unauthenticated shell
 
-| File | Purpose |
-|------|---------|
+| File               | Purpose                         |
+| ------------------ | ------------------------------- |
 | `PublicLayout.tsx` | Centered login/auth page layout |
-| `Branding.tsx` | Logo + brand name |
-| `FormHeading.tsx` | Heading above auth forms |
-| `Heading.tsx` | Generic heading component |
+| `Branding.tsx`     | Logo + brand name               |
+| `FormHeading.tsx`  | Heading above auth forms        |
+| `Heading.tsx`      | Generic heading component       |
 
 ### `components/skeletons/` — Loading placeholders
 
-| File | Purpose |
-|------|---------|
+| File                | Purpose                     |
+| ------------------- | --------------------------- |
 | `TableSkeleton.tsx` | Animated table row skeleton |
 
 ---
@@ -223,6 +224,7 @@ features/backoffice-[name]/
 ```
 
 Current backoffice features:
+
 - `backoffice-currently-hot/`
 - `backoffice-ever-been-hot/`
 - `backoffice-recent-interest/`
@@ -236,79 +238,85 @@ Current backoffice features:
 Split by domain. Always import from `@/types` (the barrel) unless you need
 to reference a specific domain file directly.
 
-| File | Contents |
-|------|---------|
-| `agent.types.ts` | `AirtableAgent`, `Agent` |
-| `lead.types.ts` | `AirtableLead`, `Lead` |
-| `form.types.ts` | `CallsFormState`, `CallsModalState`, `createFormStateFromLead()` |
-| `index.ts` | Re-exports all of the above |
+| File             | Contents                                                         |
+| ---------------- | ---------------------------------------------------------------- |
+| `agent.types.ts` | `AirtableAgent`, `Agent`                                         |
+| `lead.types.ts`  | `AirtableLead`, `Lead`                                           |
+| `form.types.ts`  | `CallsFormState`, `CallsModalState`, `createFormStateFromLead()` |
+| `index.ts`       | Re-exports all of the above                                      |
 
 ---
 
 ## `hooks/` — Custom hooks
 
-| File | Purpose |
-|------|---------|
-| `useAuthActions.ts` | `login()`, `logout()` bound to auth context |
-| `useMe.ts` | React Query hook to fetch the current user |
-| `useRouteMeta.ts` | Returns route title/icon based on current path |
+| File                | Purpose                                        |
+| ------------------- | ---------------------------------------------- |
+| `useAuthActions.ts` | `login()`, `logout()` bound to auth context    |
+| `useMe.ts`          | React Query hook to fetch the current user     |
+| `useRouteMeta.ts`   | Returns route title/icon based on current path |
 
 ---
 
 ## `lib/` — Utilities & services
 
-| File | Purpose |
-|------|---------|
-| `api.ts` | Fetch wrapper (auto-attaches token, handles 401 refresh) |
-| `auth-routing.ts` | `getDefaultRouteForRole()`, redirect helpers |
-| `navigation.ts` | Nav items keyed by role |
-| `token.ts` | Read/write access & refresh tokens |
-| `secureStorage.ts` | AES-encrypted localStorage wrapper |
-| `utils.ts` | Shared utility helpers (`delay`, etc.) |
-| `toast.ts` | Typed toast notification helpers |
-| `services/auth.service.ts` | `loginRequest()`, `refreshToken()`, `fetchMe()` |
-| `validation/index.ts` | Zod schemas for forms |
-| `mocks/users.ts` | Seed user data for mock auth API |
+| File                       | Purpose                                                  |
+| -------------------------- | -------------------------------------------------------- |
+| `api.ts`                   | Fetch wrapper (auto-attaches token, handles 401 refresh) |
+| `auth-routing.ts`          | `getDefaultRouteForRole()`, redirect helpers             |
+| `navigation.ts`            | Nav items keyed by role                                  |
+| `token.ts`                 | Read/write access & refresh tokens                       |
+| `secureStorage.ts`         | AES-encrypted localStorage wrapper                       |
+| `utils.ts`                 | Shared utility helpers (`delay`, etc.)                   |
+| `toast.ts`                 | Typed toast notification helpers                         |
+| `services/auth.service.ts` | `loginRequest()`, `refreshToken()`, `fetchMe()`          |
+| `validation/index.ts`      | Zod schemas for forms                                    |
+| `mocks/users.ts`           | Seed user data for mock auth API                         |
 
 ---
 
 ## `providers/` — React context
 
-| File | Purpose |
-|------|---------|
-| `AuthProvider.tsx` | Provides `useAuth()` — user, loading, login, logout |
-| `QueryProvider.tsx` | TanStack React Query client |
-| `ThemeProvider.tsx` | Dark/light theme, persists to localStorage |
+| File                | Purpose                                             |
+| ------------------- | --------------------------------------------------- |
+| `AuthProvider.tsx`  | Provides `useAuth()` — user, loading, login, logout |
+| `QueryProvider.tsx` | TanStack React Query client                         |
+| `ThemeProvider.tsx` | Dark/light theme, persists to localStorage          |
 
 ---
 
 ## Component conventions
 
 ### Naming
+
 - Feature containers: `PascalCase.tsx` (e.g. `AgentCalls.tsx`)
 - Private sub-components: prefix directory with `_` (e.g. `_components/`)
 - Shared primitives: live in `components/ui/`
 
 ### Props types
+
 Defined inline or as a `type Props = { ... }` near the component.
 
 ### "use client" directive
+
 Added only where needed (event handlers, hooks, animations).
 Server components are the default — don't add `"use client"` unnecessarily.
 
 ### Styling
+
 - Tailwind CSS utility classes throughout
 - Dark mode via `.dark:*` variants
 - Standard card pattern → use `<CardShell>` from `components/ui`
 - Standard section label → use `<SectionLabel>` from `components/ui`
 
 ### Data flow
+
 - Local UI state: `useState`
 - Server/async state: TanStack React Query (`useQuery`)
 - Global auth state: `useAuth()` context hook
 - Mock data: `_lib/data.ts` in each feature
 
 ### Adding a new feature
+
 1. Create `features/[feature-name]/[FeatureName].tsx`
 2. Add `_components/` and `_lib/` subdirectories
 3. Add a page at `app/(protected)/[route]/page.tsx`
