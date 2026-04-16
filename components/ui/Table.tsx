@@ -34,6 +34,7 @@ type Props<T> = {
   isLoading?: boolean;
   emptyText?: string;
   emptyState?: React.ReactNode;
+  showTableWhenEmpty?: boolean;
   title: string;
   description?: string;
 };
@@ -105,6 +106,7 @@ export function Table<T>({
   description,
   emptyText = "No data found",
   emptyState,
+  showTableWhenEmpty = false,
 }: Props<T>) {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const tableElementRef = useRef<HTMLTableElement | null>(null);
@@ -539,7 +541,7 @@ export function Table<T>({
   }
 
   // 🔹 Empty
-  if (!data || data.length === 0) {
+  if ((!data || data.length === 0) && !showTableWhenEmpty) {
     return (
       <div className="overflow-hidden ">
         {emptyState ?? (
@@ -1250,7 +1252,19 @@ export function Table<T>({
           <tbody className="divide-y divide-slate-200/80 dark:divide-slate-600">
             {groupedData
               ? renderGroupedRows(groupedData)
-              : paginatedData.map((row, i) => (
+              : processedData.length === 0
+                ? (
+                  <tr>
+                    <td colSpan={columns.length} className="px-0 py-0">
+                      {emptyState ?? (
+                        <div className="p-10 text-center text-gray-500">
+                          {emptyText}
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                )
+                : paginatedData.map((row, i) => (
                   <tr
                     key={`${safeCurrentPage}-${i}`}
                     className="hover:bg-indigo-50/40 dark:hover:bg-slate-100 transition-colors duration-150"

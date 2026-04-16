@@ -55,7 +55,7 @@ export function UnassignedHotLeadsTable({
       { title: "Phone", key: "phone" },
       { title: "Email", key: "email" },
       {
-        title: "Timezone",
+        title: "Time zone",
         key: "timezone",
         type: "select",
         options: timezoneOptions.map((value) => ({ label: value, value })),
@@ -79,35 +79,58 @@ export function UnassignedHotLeadsTable({
       return [
         ...baseColumns,
         {
-          title: "SVG-Lead Type",
+          title: "Lead Type",
           key: "svgLeadType",
           type: "select",
           options: leadTypeOptions.map((value) => ({ label: value, value })),
           render: (row) => <TypeBadge value={row.svgLeadType} kind="lead" />,
         },
         {
-          title: "SVG-To be Called by",
+          title: "To be called by Sidago",
           key: "svgToBeCalledBy",
           type: "select",
           options: assigneeOptions.map((value) => ({ label: value, value })),
         },
         {
-          title: "SVG-Last Call Date",
+          title: "Last called date Sidago",
           key: "svgLastCallDate",
           type: "date",
         },
         {
-          title: "Benton-Lead Type",
+          title: "Lead Type Benton",
           key: "bentonLeadType",
           type: "select",
           options: leadTypeOptions.map((value) => ({ label: value, value })),
           render: (row) => <TypeBadge value={row.bentonLeadType} kind="lead" />,
         },
         {
-          title: "Benton-To be Called by",
+          title: "To be called by Benton",
           key: "bentonToBeCalledBy",
           type: "select",
           options: assigneeOptions.map((value) => ({ label: value, value })),
+        },
+        {
+          title: "Last called date Benton",
+          key: "bentonLastCallDate",
+          type: "date",
+        },
+        {
+          title: "Lead Type 95RM",
+          key: "rm95LeadType",
+          type: "select",
+          options: leadTypeOptions.map((value) => ({ label: value, value })),
+          render: (row) => <TypeBadge value={row.rm95LeadType} kind="lead" />,
+        },
+        {
+          title: "To be called by 95RM",
+          key: "rm95ToBeCalledBy",
+          type: "select",
+          options: assigneeOptions.map((value) => ({ label: value, value })),
+        },
+        {
+          title: "Last called date 95RM",
+          key: "rm95LastCallDate",
+          type: "date",
         },
         {
           title: "Date Become Hot",
@@ -115,7 +138,7 @@ export function UnassignedHotLeadsTable({
           type: "date",
         },
         {
-          title: "Last Action Date (SVG, Benton)",
+          title: "Last Action Date (SVG, Benton, 95RM)",
           key: "lastActionDate",
         },
       ];
@@ -198,7 +221,7 @@ export function UnassignedHotLeadsTable({
         type: "date",
       },
       {
-        title: "Last Action Date (SVG, Benton)",
+        title: "Last Action Date (SVG, Benton, 95RM)",
         key: "lastActionDate",
       },
     ];
@@ -210,6 +233,7 @@ export function UnassignedHotLeadsTable({
         data={data}
         columns={columns}
         title={title}
+        showTableWhenEmpty={variant === "svg"}
         emptyState={
           <UnassignedHotLeadsEmptyState subtitle="Your team has already picked up every hot lead in this queue. When new unassigned leads arrive, they will appear here automatically." />
         }
