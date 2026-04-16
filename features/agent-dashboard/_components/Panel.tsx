@@ -1,10 +1,7 @@
 "use client";
 
+import clsx from "clsx";
 import { ReactNode } from "react";
-
-function classes(...values: Array<string | undefined>) {
-  return values.filter(Boolean).join(" ");
-}
 
 interface PanelProps {
   children: ReactNode;
@@ -25,7 +22,7 @@ export function Panel({
 }: PanelProps) {
   return (
     <div
-      className={classes(
+      className={clsx(
         "overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800",
         className,
       )}
@@ -48,7 +45,7 @@ export function Panel({
         </div>
       )}
 
-      <div className={classes(bodyClassName)}>{children}</div>
+      <div className={clsx(bodyClassName)}>{children}</div>
     </div>
   );
 }

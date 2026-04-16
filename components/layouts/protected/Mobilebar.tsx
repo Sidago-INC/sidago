@@ -1,10 +1,11 @@
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { SidebarItem } from "./SidebarItem";
-import { ShieldCheck, UserCog, X } from "lucide-react";
+import { ShieldCheck, X } from "lucide-react";
 import { NavigationItem } from "@/lib/navigation";
 import { useAuth } from "@/providers/AuthProvider";
 import { usePathname } from "next/navigation";
+import { SidebarRoleBadge } from "./SidebarRoleBadge";
 
 export type Props = {
   navigations: NavigationItem[];
@@ -19,9 +20,6 @@ export default function Mobilebar({
 }: Props) {
   const { user } = useAuth();
   const pathname = usePathname();
-  const roleLabel = user?.role
-    ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
-    : "Unknown";
 
   return (
     <AnimatePresence>
@@ -67,17 +65,7 @@ export default function Mobilebar({
               ))}
             </nav>
             <div className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-800">
-              <div className="flex items-center gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/80 px-3 py-2.5 text-indigo-700 dark:border-indigo-900/60 dark:bg-indigo-950/50 dark:text-indigo-300">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white">
-                  <UserCog size={18} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[11px] font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-400">
-                    User Role
-                  </p>
-                  <p className="truncate text-sm font-bold">{roleLabel}</p>
-                </div>
-              </div>
+              <SidebarRoleBadge role={user?.role} />
             </div>
           </motion.aside>
         </>

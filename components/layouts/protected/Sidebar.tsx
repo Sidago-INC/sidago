@@ -1,18 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
-import {
-  PanelLeftClose,
-  PanelLeftOpen,
-  ShieldCheck,
-  UserCog,
-} from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen, ShieldCheck } from "lucide-react";
 import { SidebarItem } from "./SidebarItem";
 import { Button } from "@/components/ui";
 import { NavigationItem } from "@/lib/navigation";
 import { useAuth } from "@/providers/AuthProvider";
-import clsx from "clsx";
 import { usePathname } from "next/navigation";
+import { SidebarRoleBadge } from "./SidebarRoleBadge";
 
 export type Props = {
   isCollapsed: boolean;
@@ -27,9 +22,6 @@ export const Sidebar = ({
 }: Props) => {
   const { user } = useAuth();
   const pathname = usePathname();
-  const roleLabel = user?.role
-    ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
-    : "Unknown";
 
   return (
     <motion.aside
@@ -87,40 +79,7 @@ export const Sidebar = ({
       </nav>
 
       <div className="border-t border-slate-200/80 p-3 dark:border-slate-600">
-        <div
-          className={`flex rounded-2xl border border-indigo-100 bg-indigo-50/80 text-indigo-700 dark:border-indigo-900/60 dark:bg-indigo-950/50 dark:text-indigo-300 ${
-            isCollapsed
-              ? "flex-col items-center justify-center gap-2 px-2 py-3 text-center"
-              : "items-center gap-3 px-3 py-2.5"
-          }`}
-          title={`Role: ${roleLabel}`}
-        >
-          <div
-            className={clsx(
-              "flex shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white",
-              isCollapsed ? "h-6 w-6" : "h-9 w-9",
-            )}
-          >
-            <UserCog size={18} />
-          </div>
-
-          <div className={`min-w-0 ${isCollapsed ? "w-full" : ""}`}>
-            {!isCollapsed && (
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-400">
-                User Role
-              </p>
-            )}
-            <p
-              className={`font-bold overflow-hidden text-ellipsis whitespace-nowrap ${
-                isCollapsed
-                  ? "w-10 text-[11px] leading-tight"
-                  : "truncate text-sm"
-              }`}
-            >
-              {roleLabel}
-            </p>
-          </div>
-        </div>
+        <SidebarRoleBadge role={user?.role} compact={isCollapsed} />
       </div>
     </motion.aside>
   );
