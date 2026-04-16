@@ -15,7 +15,7 @@ import { useLogin } from "@/hooks/useAuthActions";
 import { consumeAuthNotice } from "@/lib/auth-routing";
 import { showInfoToast } from "@/lib/toast";
 
-export default function Form() {
+export default function LoginForm() {
   const { mutate: loginAction, isPending } = useLogin();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -111,7 +111,6 @@ export default function Form() {
               }}
               error={touched.password ? errors.password : undefined}
             />
-            {/* --- Forgot Password Link --- */}
             <div className="flex justify-end">
               <Link
                 href="/forgot-password"

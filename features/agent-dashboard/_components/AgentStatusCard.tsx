@@ -8,12 +8,12 @@ import { WinnerBadge } from "./WinnerBadge";
 import { getAgentColor, getAgentDetailStats } from "../_lib/utils";
 import clsx from "clsx";
 
-interface StatusCardProps {
+interface AgentStatusCardProps {
   agent: Agent;
   index: number;
 }
 
-export default function StatusCard({ agent, index }: StatusCardProps) {
+export default function AgentStatusCard({ agent, index }: AgentStatusCardProps) {
   const stats = getAgentDetailStats(agent);
   const color = getAgentColor(index);
 

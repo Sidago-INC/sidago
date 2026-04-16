@@ -1,12 +1,12 @@
 "use client";
 
-import { Form } from "./Form";
+import { ResetPasswordForm } from "./ResetPasswordForm";
 import { PublicLayout } from "@/components/layouts/public/PublicLayout";
 
 export function ResetPassword({ token }: { token: string }) {
   return (
     <PublicLayout>
-      <Form token={token} />
+      <ResetPasswordForm token={token} />
     </PublicLayout>
   );
 }

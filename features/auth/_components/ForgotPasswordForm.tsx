@@ -8,11 +8,12 @@ import { validateField, required, email as emailRule } from "@/lib/validation";
 import { useForgotPassword } from "@/hooks/useAuthActions";
 import FormHeading from "@/components/layouts/public/FormHeading";
 
-export function Form() {
+export function ForgotPasswordForm() {
   const { mutate, isPending } = useForgotPassword();
   const [email, setEmail] = useState<string>("");
   const [error, setError] = useState<string | undefined>();
   const [touched, setTouched] = useState<boolean>(false);
+
   const validateEmail = (value: string) => {
     const err = validateField(value, [required(), emailRule()]);
     setError(err || undefined);

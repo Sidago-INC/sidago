@@ -1,0 +1,22 @@
+export type HotLeadRow = {
+  lead: string;
+  companyName: string;
+  fullName: string;
+  phone: string;
+  email: string;
+  timezone: string;
+  contactType: string;
+  svgLeadType: string;
+  svgToBeCalledBy: string;
+  svgLastCallDate: string;
+  bentonLeadType: string;
+  bentonToBeCalledBy: string;
+  bentonLastCallDate: string;
+  rm95LeadType: string;
+  rm95ToBeCalledBy: string;
+  rm95LastCallDate: string;
+  svgDateBecomeHot: string;
+  bentonDateBecomeHot: string;
+  rm95DateBecomeHot: string;
+  lastActionDate: string;
+};

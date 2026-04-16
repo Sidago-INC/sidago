@@ -11,6 +11,6 @@ export const metadata = {
   },
 };
 
-export default function page() {
+export default function Page() {
   return <BackofficeDashboard initialView="monthly" />;
 }

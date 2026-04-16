@@ -1,4 +1,4 @@
-import Dashboard from "./components/Dashboard";
+import DashboardSwitch from "@/features/dashboard/_components/DashboardSwitch";
 
 export const metadata = {
   title: "Dashboard | Sidago CRM",
@@ -10,5 +10,5 @@ export const metadata = {
 };
 
 export default function DashboardPage() {
-  return <Dashboard />;
+  return <DashboardSwitch />;
 }

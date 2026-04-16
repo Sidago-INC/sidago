@@ -1,26 +1,10 @@
-import { type UserRole } from "./navigation";
+import { agentNavigation, backofficeNavigation, type UserRole } from "./navigation";
 
 export const AUTH_NOTICE_KEY = "sidago_auth_notice";
 
-const agentRoutes = new Set(["/dashboard", "/calls"]);
+const agentRoutes = new Set(agentNavigation.map((item) => item.href));
 
-const backofficeRoutes = new Set([
-  "/dashboard",
-  "/currently-hot-leads-svg",
-  "/currently-hot-leads-95rm",
-  "/currently-hot-leads-benton",
-  "/recent-interest-svg",
-  "/recent-interest-95rm",
-  "/recent-interest-benton",
-  "/unassigned-hot-leads-svg",
-  "/unassigned-hot-leads-95rm",
-  "/unassigned-hot-leads-benton",
-  "/ever-been-hot-svg",
-  "/ever-been-hot-95rm",
-  "/ever-been-hot-benton",
-  "/monthly-stats-points",
-  "/closed-contacts",
-]);
+const backofficeRoutes = new Set(backofficeNavigation.map((item) => item.href));
 
 const allProtectedRoutes = new Set([...agentRoutes, ...backofficeRoutes]);
 

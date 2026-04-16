@@ -1,12 +1,12 @@
 "use client";
 
-import Form from "./Form";
+import LoginForm from "./LoginForm";
 import { PublicLayout } from "@/components/layouts/public/PublicLayout";
 
 export default function Login() {
   return (
     <PublicLayout>
-      <Form />
+      <LoginForm />
     </PublicLayout>
   );
 }

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { ResetPassword } from "./components/ResetPassword";
+import { ResetPassword } from "@/features/auth/_components/ResetPassword";
 
 export const metadata = {
   title: "Reset Password | Sidago CRM",

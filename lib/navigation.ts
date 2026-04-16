@@ -17,7 +17,7 @@ export type NavigationItem = {
   icon: LucideIcon;
 };
 
-const agentNavigation: NavigationItem[] = [
+export const agentNavigation: NavigationItem[] = [
   {
     label: "Dashboard",
     href: "/dashboard",
@@ -30,7 +30,7 @@ const agentNavigation: NavigationItem[] = [
   },
 ];
 
-const backofficeNavigation: NavigationItem[] = [
+export const backofficeNavigation: NavigationItem[] = [
   {
     label: "Dashboard",
     href: "/dashboard",

@@ -7,7 +7,7 @@ import { validateField, required, minLength, match } from "@/lib/validation";
 import { useResetPassword } from "@/hooks/useAuthActions";
 import FormHeading from "@/components/layouts/public/FormHeading";
 
-export function Form({ token }: { token: string }) {
+export function ResetPasswordForm({ token }: { token: string }) {
   const { mutate, isPending } = useResetPassword();
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");

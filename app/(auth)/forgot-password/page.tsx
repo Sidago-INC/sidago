@@ -1,4 +1,4 @@
-import { ForgotPassword } from "./components/ForgotPassword";
+import { ForgotPassword } from "@/features/auth/_components/ForgotPassword";
 
 export const metadata = {
   title: "Forgot Password | Sidao CRM",
