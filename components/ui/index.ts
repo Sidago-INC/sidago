@@ -6,6 +6,8 @@ export {
   TypeBadge,
 } from "./Badge";
 export { Button } from "./Button";
+export { Drawer } from "./Drawer";
+export type { DrawerProps, DrawerDirection } from "./Drawer";
 export { DropdownPanel } from "./DropdownPanel";
 export { Card, CardContent } from "./Card";
 export { CardShell } from "./CardShell";

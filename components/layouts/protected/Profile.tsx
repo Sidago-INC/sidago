@@ -22,7 +22,10 @@ export default function Profile() {
           <span className="hidden text-sm font-bold text-slate-700 dark:text-slate-100 sm:inline">
             {user?.name?.split(" ")[0]}
           </span>
-          <ChevronDown size={12} className="text-slate-400 dark:text-slate-500" />
+          <ChevronDown
+            size={12}
+            className="text-slate-400 dark:text-slate-500"
+          />
         </Button>
       )}
     >

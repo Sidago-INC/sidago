@@ -6,7 +6,10 @@ interface SidebarRoleBadgeProps {
   compact?: boolean;
 }
 
-export function SidebarRoleBadge({ role, compact = false }: SidebarRoleBadgeProps) {
+export function SidebarRoleBadge({
+  role,
+  compact = false,
+}: SidebarRoleBadgeProps) {
   const roleLabel = role
     ? role.charAt(0).toUpperCase() + role.slice(1)
     : "Unknown";

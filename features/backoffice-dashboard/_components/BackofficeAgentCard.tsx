@@ -14,7 +14,10 @@ interface BackofficeAgentCardProps {
   index: number;
 }
 
-export function BackofficeAgentCard({ agent, index }: BackofficeAgentCardProps) {
+export function BackofficeAgentCard({
+  agent,
+  index,
+}: BackofficeAgentCardProps) {
   const tone = CARD_TONES[index % CARD_TONES.length];
   return (
     <StatusCard
@@ -40,21 +43,24 @@ export function BackofficeAgentCard({ agent, index }: BackofficeAgentCardProps) 
           label: "Calls Today",
           value: agent.callsToday,
           className: clsx("rounded-xl px-4 py-3", tone),
-          valueClassName: "text-xl font-bold text-slate-900 dark:text-slate-100",
+          valueClassName:
+            "text-xl font-bold text-slate-900 dark:text-slate-100",
         },
         {
           id: "hot-leads-today",
           label: "Hot Leads Today",
           value: agent.hotLeadsToday,
           className: clsx("rounded-xl px-4 py-3", tone),
-          valueClassName: "text-xl font-bold text-slate-900 dark:text-slate-100",
+          valueClassName:
+            "text-xl font-bold text-slate-900 dark:text-slate-100",
         },
         {
           id: "current-hot-leads",
           label: "Current Hot Leads",
           value: agent.currentHotLeads,
           className: clsx("rounded-xl px-4 py-3", tone),
-          valueClassName: "text-xl font-bold text-slate-900 dark:text-slate-100",
+          valueClassName:
+            "text-xl font-bold text-slate-900 dark:text-slate-100",
         },
       ]}
     />

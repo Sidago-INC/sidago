@@ -1250,37 +1250,37 @@ export function Table<T>({
 
           {/* Body */}
           <tbody className="divide-y divide-slate-200/80 dark:divide-slate-600">
-            {groupedData
-              ? renderGroupedRows(groupedData)
-              : processedData.length === 0
-                ? (
-                  <tr>
-                    <td colSpan={columns.length} className="px-0 py-0">
-                      {emptyState ?? (
-                        <div className="p-10 text-center text-gray-500">
-                          {emptyText}
-                        </div>
-                      )}
+            {groupedData ? (
+              renderGroupedRows(groupedData)
+            ) : processedData.length === 0 ? (
+              <tr>
+                <td colSpan={columns.length} className="px-0 py-0">
+                  {emptyState ?? (
+                    <div className="p-10 text-center text-gray-500">
+                      {emptyText}
+                    </div>
+                  )}
+                </td>
+              </tr>
+            ) : (
+              paginatedData.map((row, i) => (
+                <tr
+                  key={`${safeCurrentPage}-${i}`}
+                  className="hover:bg-indigo-50/40 dark:hover:bg-slate-100 transition-colors duration-150"
+                >
+                  {columns.map((col) => (
+                    <td
+                      key={col.title}
+                      className="px-6 py-4 text-sm text-gray-700 transition-colors dark:text-white whitespace-nowrap"
+                    >
+                      {col.render
+                        ? col.render(row)
+                        : getCellValue(row, col.key)}
                     </td>
-                  </tr>
-                )
-                : paginatedData.map((row, i) => (
-                  <tr
-                    key={`${safeCurrentPage}-${i}`}
-                    className="hover:bg-indigo-50/40 dark:hover:bg-slate-100 transition-colors duration-150"
-                  >
-                    {columns.map((col) => (
-                      <td
-                        key={col.title}
-                        className="px-6 py-4 text-sm text-gray-700 transition-colors dark:text-white whitespace-nowrap"
-                      >
-                        {col.render
-                          ? col.render(row)
-                          : getCellValue(row, col.key)}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
+                  ))}
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

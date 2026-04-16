@@ -13,7 +13,10 @@ interface AgentStatusCardProps {
   index: number;
 }
 
-export default function AgentStatusCard({ agent, index }: AgentStatusCardProps) {
+export default function AgentStatusCard({
+  agent,
+  index,
+}: AgentStatusCardProps) {
   const stats = getAgentDetailStats(agent);
   const color = getAgentColor(index);
 

@@ -28,7 +28,8 @@ export function MonthLeaderCard({
           label: name,
           value,
           className: clsx("rounded-xl px-4 py-3", tone),
-          valueClassName: "text-xl font-bold text-slate-900 dark:text-slate-100",
+          valueClassName:
+            "text-xl font-bold text-slate-900 dark:text-slate-100",
         },
       ]}
     />

@@ -28,7 +28,11 @@ export function BackofficeMonthlyStatsView({
       </div>
       <div className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <MonthLeaderCard title="Current Month Leader" name="Bryan" value={10000} />
+          <MonthLeaderCard
+            title="Current Month Leader"
+            name="Bryan"
+            value={10000}
+          />
           <MonthLeaderCard title="Last Month Leader" name="Bryan" value={700} />
         </div>
 

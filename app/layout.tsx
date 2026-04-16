@@ -5,6 +5,7 @@ import QueryProvider from "@/providers/QueryProvider";
 import { ToastContainer } from "react-toastify";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
+import { DrawerProvider } from "@/providers/DrawerProvider";
 import { RoutePreloader } from "@/components/ui";
 
 const geistSans = Geist({
@@ -37,8 +38,10 @@ export default function RootLayout({
         <ThemeProvider>
           <QueryProvider>
             <AuthProvider>
-              <RoutePreloader />
-              {children}
+              <DrawerProvider>
+                <RoutePreloader />
+                {children}
+              </DrawerProvider>
               <ToastContainer
                 position="top-right"
                 autoClose={3000}

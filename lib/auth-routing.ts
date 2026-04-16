@@ -1,4 +1,8 @@
-import { agentNavigation, backofficeNavigation, type UserRole } from "./navigation";
+import {
+  agentNavigation,
+  backofficeNavigation,
+  type UserRole,
+} from "./navigation";
 
 export const AUTH_NOTICE_KEY = "sidago_auth_notice";
 
