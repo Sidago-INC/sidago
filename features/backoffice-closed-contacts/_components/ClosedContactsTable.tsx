@@ -13,6 +13,8 @@ import {
   leadTypeOptions,
   timezoneOptions,
 } from "../_lib/data";
+import { ClosedContactDrawer } from "./CloseContactDrawer";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 type ClosedContactsTableProps = {
   data: ClosedContactRow[];
@@ -20,6 +22,30 @@ type ClosedContactsTableProps = {
 };
 
 export function ClosedContactsTable({ data, title }: ClosedContactsTableProps) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const selectedIndex = useMemo(() => {
+    const selectedLead = searchParams.get("lead");
+    if (!selectedLead) return null;
+    const idx = data.findIndex((row) => row.email === selectedLead);
+    return idx >= 0 ? idx : null;
+  }, [data, searchParams]);
+
+  const updateRouteForIndex = (index: number | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (index === null) {
+      params.delete("lead");
+    } else {
+      params.set("lead", data[index].email);
+    }
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+  };
+
   const columns = useMemo<Column<ClosedContactRow>[]>(
     () => [
       {
@@ -100,7 +126,22 @@ export function ClosedContactsTable({ data, title }: ClosedContactsTableProps) {
 
   return (
     <div className="min-h-full">
-      <Table data={data} columns={columns} title={title} />
+      <Table
+        data={data}
+        columns={columns}
+        title={title}
+        onRowClick={(row) => {
+          const index = data.findIndex((item) => item.email === row.email);
+          updateRouteForIndex(index >= 0 ? index : null);
+        }}
+      />
+      <ClosedContactDrawer
+        data={data}
+        columns={columns}
+        selectedIndex={selectedIndex}
+        onSelectedIndexChange={updateRouteForIndex}
+        onClose={() => updateRouteForIndex(null)}
+      />
     </div>
   );
 }
