@@ -1,4 +1,5 @@
 export type RecentInterestRow = {
+  followUpDate: string;
   followUpDateCleaned: string;
   lead: string;
   campaignType: string;
@@ -10,6 +11,7 @@ export type RecentInterestRow = {
   leadType: string;
   notes: string;
   phone: string;
+  timezone: string;
 };
 
 export const recentInterestLeadOptions = [
@@ -56,12 +58,14 @@ export const recentInterestLeadTypeOptions = [
 
 export const svgRecentInterestData: RecentInterestRow[] = [
   {
+    followUpDate: "Apr 17, 2026",
     followUpDateCleaned: "2026-04-17",
     lead: "Interested",
     campaignType: "Current Interest",
     contactPerson: "Ariana West",
     companyName: "Northwind Labs",
     email: "ariana@northwind.io",
+    timezone: "EST",
     assignedTo: "Hasib",
     callResult: "Meeting Booked",
     leadType: "Hot",
@@ -69,8 +73,10 @@ export const svgRecentInterestData: RecentInterestRow[] = [
     phone: "+1 415 221 0901",
   },
   {
+    followUpDate: "Apr 18, 2026",
     followUpDateCleaned: "2026-04-18",
     lead: "Qualified",
+    timezone: "EST",
     campaignType: "Inbound",
     contactPerson: "Rayan Chowdhury",
     companyName: "BluePeak Digital",
@@ -82,7 +88,9 @@ export const svgRecentInterestData: RecentInterestRow[] = [
     phone: "+1 202 555 0188",
   },
   {
+    followUpDate: "Apr 19, 2026",
     followUpDateCleaned: "2026-04-19",
+    timezone: "PST",
     lead: "Follow Up",
     campaignType: "Reactivation",
     contactPerson: "Nabila Ahmed",
@@ -95,7 +103,9 @@ export const svgRecentInterestData: RecentInterestRow[] = [
     phone: "+1 718 555 0133",
   },
   {
+    followUpDate: "Apr 20, 2026",
     followUpDateCleaned: "2026-04-20",
+    timezone: "PST",
     lead: "Re-Engaged",
     campaignType: "Referral",
     contactPerson: "Laura Chen",
@@ -108,7 +118,9 @@ export const svgRecentInterestData: RecentInterestRow[] = [
     phone: "+1 206 555 0107",
   },
   {
+    followUpDate: "Apr 22, 2026",
     followUpDateCleaned: "2026-04-22",
+    timezone: "EST",
     lead: "Hot Lead",
     campaignType: "Outbound",
     contactPerson: "Marcus Bell",
@@ -124,7 +136,9 @@ export const svgRecentInterestData: RecentInterestRow[] = [
 
 export const rm95RecentInterestData: RecentInterestRow[] = [
   {
+    followUpDate: "Apr 16, 2026",
     followUpDateCleaned: "2026-04-16",
+    timezone: "PST",
     lead: "Follow Up",
     campaignType: "Current Interest",
     contactPerson: "Jon Mercer",
@@ -137,7 +151,9 @@ export const rm95RecentInterestData: RecentInterestRow[] = [
     phone: "+1 646 555 0177",
   },
   {
+    followUpDate: "Apr 18, 2026",
     followUpDateCleaned: "2026-04-18",
+    timezone: "CST",
     lead: "Qualified",
     campaignType: "Inbound",
     contactPerson: "Victor Lopez",
@@ -150,7 +166,9 @@ export const rm95RecentInterestData: RecentInterestRow[] = [
     phone: "+34 91 555 0130",
   },
   {
+    followUpDate: "Apr 17, 2026",
     followUpDateCleaned: "2026-04-17",
+    timezone: "CST",
     lead: "Interested",
     campaignType: "Outbound",
     contactPerson: "Priya Sen",
@@ -163,7 +181,9 @@ export const rm95RecentInterestData: RecentInterestRow[] = [
     phone: "+91 80 5555 0198",
   },
   {
+    followUpDate: "Apr 19, 2026",
     followUpDateCleaned: "2026-04-19",
+    timezone: "PST",
     lead: "Hot Lead",
     campaignType: "Reactivation",
     contactPerson: "Hiro Tanaka",
@@ -176,7 +196,9 @@ export const rm95RecentInterestData: RecentInterestRow[] = [
     phone: "+81 3 5550 0120",
   },
   {
+    followUpDate: "Apr 20, 2026",
     followUpDateCleaned: "2026-04-20",
+    timezone: "CST",
     lead: "Re-Engaged",
     campaignType: "Referral",
     contactPerson: "Elena Cruz",
@@ -192,7 +214,9 @@ export const rm95RecentInterestData: RecentInterestRow[] = [
 
 export const bentonRecentInterestData: RecentInterestRow[] = [
   {
+    followUpDate: "Apr 17, 2026",
     followUpDateCleaned: "2026-04-17",
+    timezone: "EST",
     lead: "Follow Up",
     campaignType: "Current Interest",
     contactPerson: "Sadia Rahman",
@@ -205,7 +229,9 @@ export const bentonRecentInterestData: RecentInterestRow[] = [
     phone: "+1 303 555 0192",
   },
   {
+    followUpDate: "Apr 18, 2026",
     followUpDateCleaned: "2026-04-18",
+    timezone: "CST",
     lead: "Re-Engaged",
     campaignType: "Reactivation",
     contactPerson: "Imran Ali",
@@ -218,7 +244,9 @@ export const bentonRecentInterestData: RecentInterestRow[] = [
     phone: "+1 617 555 0114",
   },
   {
+    followUpDate: "Apr 19, 2026",
     followUpDateCleaned: "2026-04-19",
+    timezone: "PST",
     lead: "Qualified",
     campaignType: "Referral",
     contactPerson: "Grace Miller",
@@ -231,7 +259,9 @@ export const bentonRecentInterestData: RecentInterestRow[] = [
     phone: "+1 212 555 0129",
   },
   {
+    followUpDate: "Apr 21, 2026",
     followUpDateCleaned: "2026-04-21",
+    timezone: "CST",
     lead: "Hot Lead",
     campaignType: "Inbound",
     contactPerson: "Sophia Turner",
@@ -244,7 +274,9 @@ export const bentonRecentInterestData: RecentInterestRow[] = [
     phone: "+44 20 7946 0132",
   },
   {
+    followUpDate: "Apr 22, 2026",
     followUpDateCleaned: "2026-04-22",
+    timezone: "CST",
     lead: "Interested",
     campaignType: "Outbound",
     contactPerson: "Daniel Ross",

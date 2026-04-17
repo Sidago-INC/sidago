@@ -2,7 +2,9 @@
 
 import { CompanySymbolBadge, TimezoneBadge, TypeBadge } from "@/components/ui";
 import { Table, type Column } from "@/components/ui/Table";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useMemo } from "react";
+
 import {
   assigneeOptions,
   contactTypeOptions,
@@ -25,6 +27,36 @@ export function EverBeenHotTable({
   title,
   variant,
 }: EverBeenHotTableProps) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const selectedIndex = useMemo(() => {
+    const selectedLead = searchParams.get("lead");
+
+    if (!selectedLead) {
+      return null;
+    }
+
+    const nextIndex = data.findIndex((row) => row.email === selectedLead);
+    return nextIndex >= 0 ? nextIndex : null;
+  }, [data, searchParams]);
+
+  const updateRouteForIndex = (index: number | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (index === null) {
+      params.delete("lead");
+    } else {
+      params.set("lead", data[index].email);
+    }
+
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+  };
+
   const columns = useMemo<Column<EverBeenHotRow>[]>(() => {
     const baseColumns: Column<EverBeenHotRow>[] = [
       {
@@ -210,7 +242,15 @@ export function EverBeenHotTable({
 
   return (
     <div className="min-h-full">
-      <Table data={data} columns={columns} title={title} />
+      <Table
+        data={data}
+        columns={columns}
+        title={title}
+        onRowClick={(row) => {
+          const index = data.findIndex((item) => item.email === row.email);
+          // updateRouteForIndex(index >= 0 ? index : null);
+        }}
+      />
     </div>
   );
 }
