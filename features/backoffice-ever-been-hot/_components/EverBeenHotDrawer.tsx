@@ -7,15 +7,15 @@ import {
   TypeBadge,
 } from "@/components/ui";
 import type { Column } from "@/components/ui/Table";
-import { getCompanySymbol, type LeadRow } from "../_lib/data";
+import { getCompanySymbol, type EverBeenHotRow } from "../_lib/data";
 import { ChevronDown, ChevronUp, Link, Printer } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 
-type CurrentlyHotSvgDrawerProps = {
-  data: LeadRow[];
-  columns?: Column<LeadRow>[];
+type EverBeenHotDrawerProps = {
+  data: EverBeenHotRow[];
+  columns?: Column<EverBeenHotRow>[];
   selectedIndex: number | null;
   onSelectedIndexChange: (index: number) => void;
   onClose: () => void;
@@ -31,13 +31,13 @@ function escapeHtml(value: string) {
     .replaceAll('"', "&quot;");
 }
 
-export function CurrentlyHotDrawer({
+export function EverBeenHotDrawer({
   data,
   columns,
   selectedIndex,
   onSelectedIndexChange,
   onClose,
-}: CurrentlyHotSvgDrawerProps) {
+}: EverBeenHotDrawerProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [copied, setCopied] = useState(false);
@@ -50,7 +50,7 @@ export function CurrentlyHotDrawer({
     return (columns ?? []).map((column) => {
       const resolvedValue = column.getValue
         ? column.getValue(row)
-        : row[column.key as keyof LeadRow];
+        : row[column.key as keyof EverBeenHotRow];
 
       return {
         label: column.title,
