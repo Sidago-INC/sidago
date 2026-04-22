@@ -1,18 +1,36 @@
 "use client";
 
 import {
+  CheckboxInput,
   CompanySymbolBadge,
+  DateInput,
   Drawer,
+  Textarea,
+  TextInput,
   TimezoneBadge,
-  TypeBadge,
 } from "@/components/ui";
 import type { Column } from "@/components/ui/Table";
 import type { ClosedContactRow } from "../_lib/data";
 import { getCompanySymbol } from "../_lib/data";
-import { Check, ChevronDown, ChevronUp, Link, Printer } from "lucide-react";
+import {
+  Ban,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Clock3,
+  Link,
+  MessageCircleWarning,
+  MessageSquareText,
+  PhoneCall,
+  PhoneOff,
+  Printer,
+  ThumbsDown,
+  ThumbsUp,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import Comments from "@/features/backoffice-shared/Comments";
+import { OutcomeButton } from "@/features/agent-calls/_components/OutcomeButton";
 
 type ClosedContactDrawerProps = {
   data: ClosedContactRow[];
@@ -23,6 +41,84 @@ type ClosedContactDrawerProps = {
 };
 
 const iconClass = "h-4 w-4 stroke-[2]";
+const defaultHistoryCalls = `04/17/2026 - LEVEL 2 TOM - No Answer
+04/13/2026 - LEVEL 1 TOM - Left Voicemail
+04/10/2026 - LEVEL 1 TOM - No Answer`;
+const defaultHistoryNotes = `04/17/2026 - LEVEL 2 TOM - No Answer
+04/13/2026 - LEVEL 1 TOM - Left Voicemail
+04/10/2026 - LEVEL 1 TOM - No Answer`;
+const callOutcomes = [
+  {
+    label: "No Answer",
+    icon: PhoneOff,
+    className:
+      "border border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 cursor-pointer",
+  },
+  {
+    label: "Interested",
+    icon: ThumbsUp,
+    className:
+      "bg-emerald-500 text-white shadow-sm shadow-emerald-200 hover:bg-emerald-400 dark:shadow-emerald-900/40 cursor-pointer",
+  },
+  {
+    label: "Bad Number",
+    icon: MessageCircleWarning,
+    className:
+      "bg-blue-500 text-white shadow-sm shadow-blue-200 hover:bg-blue-400 dark:shadow-blue-900/40 cursor-pointer",
+  },
+  {
+    label: "Not Interested",
+    icon: ThumbsDown,
+    className: "bg-slate-600 text-white hover:bg-slate-500 cursor-pointer",
+  },
+  {
+    label: "Left Message",
+    icon: MessageSquareText,
+    className:
+      "border border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 cursor-pointer",
+  },
+  {
+    label: "Call Lead Back",
+    icon: Clock3,
+    className:
+      "bg-rose-500 text-white shadow-sm shadow-rose-200 hover:bg-rose-400 dark:shadow-rose-900/40 cursor-pointer",
+  },
+  {
+    label: "Interested Again",
+    icon: PhoneCall,
+    className:
+      "bg-cyan-500 text-white shadow-sm shadow-cyan-200 hover:bg-cyan-400 dark:shadow-cyan-900/40 cursor-pointer",
+  },
+  {
+    label: "DNC",
+    icon: Ban,
+    className: "bg-slate-700 text-white hover:bg-slate-600 cursor-pointer",
+  },
+];
+
+type EditableClosedContactState = {
+  fullName: string;
+  phone: string;
+  email: string;
+  notes: string;
+  additionalContacts: string;
+  doesNotWorkAnymore: boolean;
+  callBackDate: string;
+  selectedOutcome: string;
+};
+
+function getEditableState(row: ClosedContactRow): EditableClosedContactState {
+  return {
+    fullName: row.fullName,
+    phone: row.phone,
+    email: row.email,
+    notes: "",
+    additionalContacts: "",
+    doesNotWorkAnymore: false,
+    callBackDate: "",
+    selectedOutcome: "",
+  };
+}
 
 function escapeHtml(value: string) {
   return value
@@ -42,8 +138,19 @@ export function ClosedContactDrawer({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [copied, setCopied] = useState(false);
+  const [formState, setFormState] = useState<{
+    key: string;
+    value: EditableClosedContactState;
+  } | null>(null);
 
   const row = selectedIndex === null ? null : (data[selectedIndex] ?? null);
+  const rowKey = row?.email ?? "";
+  const form =
+    formState?.key === rowKey
+      ? formState.value
+      : row
+        ? getEditableState(row)
+        : null;
 
   const detailItems = useMemo(() => {
     if (!row) return [];
@@ -79,9 +186,22 @@ export function ClosedContactDrawer({
     return () => window.clearTimeout(timer);
   }, [copied]);
 
-  if (!row || selectedIndex === null) return null;
+  if (!row || selectedIndex === null || !form) return null;
 
   const currentIndex = selectedIndex;
+
+  const updateForm = <Key extends keyof EditableClosedContactState>(
+    key: Key,
+    value: EditableClosedContactState[Key],
+  ) => {
+    setFormState((current) => ({
+      key: rowKey,
+      value: {
+        ...(current?.key === rowKey && current.value ? current.value : form),
+        [key]: value,
+      },
+    }));
+  };
 
   const handleCopyUrl = async () => {
     if (!drawerUrl) return;
@@ -223,56 +343,87 @@ export function ClosedContactDrawer({
 
         {/* Contact info */}
         <DetailCard label="Personal Details">
-          <Detail label="Full Name" value={row.fullName} />
-          <Detail label="Phone" value={row.phone} />
-          <Detail label="Email" value={row.email} />
+          <EditableField label="Full Name">
+            <TextInput
+              value={form.fullName}
+              onChange={(event) => updateForm("fullName", event.target.value)}
+              className="text-xs font-semibold"
+            />
+          </EditableField>
+          <EditableField label="Phone">
+            <TextInput
+              value={form.phone}
+              onChange={(event) => updateForm("phone", event.target.value)}
+              className="text-xs font-semibold"
+            />
+          </EditableField>
+          <EditableField label="Email">
+            <TextInput
+              type="email"
+              value={form.email}
+              onChange={(event) => updateForm("email", event.target.value)}
+              className="text-xs font-semibold"
+            />
+          </EditableField>
         </DetailCard>
 
-        {/* Lead classification */}
-        <DetailCard label="Lead Details">
-          <Detail
-            label="Contact Type"
-            value={<TypeBadge value={row.contactType} kind="contact" />}
-          />
-          <Detail
-            label="SVG Lead Type"
-            value={<TypeBadge value={row.leadType} kind="lead" />}
-          />
-          <Detail
-            label="Benton Lead Type"
-            value={<TypeBadge value={row.bentonLeadType} kind="lead" />}
-          />
+        <DetailCard label="Notes">
+          <EditableField label="Notes" align="stack">
+            <Textarea
+              value={form.notes}
+              onChange={(event) => updateForm("notes", event.target.value)}
+              className="text-xs font-semibold leading-5"
+              placeholder="Add notes"
+            />
+          </EditableField>
+          <EditableField label="Doesn't Work Anymore In The Company">
+            <CheckboxInput
+              checked={form.doesNotWorkAnymore}
+              onChange={(event) =>
+                updateForm("doesNotWorkAnymore", event.target.checked)
+              }
+              labelClassName="justify-end"
+            />
+          </EditableField>
+          <EditableField label="Call Back Date">
+            <DateInput
+              value={form.callBackDate}
+              onChange={(event) =>
+                updateForm("callBackDate", event.target.value)
+              }
+              className="text-xs font-semibold"
+            />
+          </EditableField>
         </DetailCard>
-        {/* Placeholder for future details */}
-        <DetailCard label="Other Contacts">-</DetailCard>
+
         {/* History */}
         <DetailCard label="History">
           <Detail
             label="History Calls"
-            value={
-              <>
-                04/17/2026 - LEVEL 2 TOM - No Answer
-                <br />
-                04/13/2026 - LEVEL 1 TOM - Left Voicemail
-                <br />
-                04/10/2026 - LEVEL 1 TOM - No Answer
-                <br />
-              </>
-            }
+            value={<HistoryText value={defaultHistoryCalls} />}
           />
           <Detail
             label="History Notes"
-            value={
-              <>
-                04/17/2026 - LEVEL 2 TOM - No Answer
-                <br />
-                04/13/2026 - LEVEL 1 TOM - Left Voicemail
-                <br />
-                04/10/2026 - LEVEL 1 TOM - No Answer
-                <br />
-              </>
-            }
+            value={<HistoryText value={defaultHistoryNotes} />}
           />
+        </DetailCard>
+
+        <DetailCard label="Additional Contacts">
+          <Detail label="Contacts" value="-" />
+        </DetailCard>
+
+        <DetailCard label="Call Outcome">
+          <div className="grid grid-cols-2 gap-2.5">
+            {callOutcomes.map((outcome) => (
+              <OutcomeButton
+                key={outcome.label}
+                label={outcome.label}
+                icon={outcome.icon}
+                onClick={() => updateForm("selectedOutcome", outcome.label)}
+                className={outcome.className}
+              />
+            ))}
+          </div>
         </DetailCard>
       </div>
     </Drawer>
@@ -310,5 +461,38 @@ function Detail({ label, value }: { label: string; value: React.ReactNode }) {
         {value}
       </p>
     </div>
+  );
+}
+
+function EditableField({
+  label,
+  children,
+  align = "row",
+}: {
+  label: string;
+  children: React.ReactNode;
+  align?: "row" | "stack";
+}) {
+  return (
+    <div
+      className={
+        align === "stack"
+          ? "space-y-1 py-2"
+          : "flex items-center justify-between gap-4 py-1.5"
+      }
+    >
+      <p className="shrink-0 text-[10px] uppercase tracking-widest text-slate-400">
+        {label}
+      </p>
+      <div className={align === "stack" ? "w-full" : "w-64 max-w-[65%]"}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function HistoryText({ value }: { value: string }) {
+  return (
+    <span className="whitespace-pre-line text-right leading-5">{value}</span>
   );
 }
