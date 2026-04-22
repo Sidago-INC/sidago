@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local review docs (not committed)
+/docs
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
