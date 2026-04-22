@@ -1,8 +1,13 @@
 "use client";
 
 import {
+  CheckboxInput,
   CompanySymbolBadge,
+  DateInput,
   Drawer,
+  Select,
+  Textarea,
+  TextInput,
   TimezoneBadge,
   TypeBadge,
 } from "@/components/ui";
@@ -11,8 +16,11 @@ import { getCompanySymbol, type EverBeenHotRow } from "../_lib/data";
 import { ChevronDown, ChevronUp, Link, Printer } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Badge } from "@/components/ui/Badge";
 import Revisions from "@/features/backoffice-shared/Revisions";
+import { AGENT_VALUES } from "@/types/agent.types";
+import { COMPANY_VALUES } from "@/types/company.types";
+import { CONTACT_TYPE_VALUES } from "@/types/contact-type.types";
+import { LEAD_TYPE_VALUES } from "@/types/lead-type.types";
 
 type EverBeenHotDrawerProps = {
   data: EverBeenHotRow[];
@@ -23,6 +31,56 @@ type EverBeenHotDrawerProps = {
 };
 
 const iconClass = "w-4 h-4 stroke-[2]";
+const defaultHistoryCalls = `04/17/2026 - LEVEL 2 TOM - No Answer
+04/13/2026 - LEVEL 1 TOM - Left Voicemail
+04/10/2026 - LEVEL 1 TOM - No Answer`;
+const defaultHistoryNotes = `04/17/2026 - LEVEL 2 TOM - No Answer
+04/13/2026 - LEVEL 1 TOM - Left Voicemail
+04/10/2026 - LEVEL 1 TOM - No Answer`;
+
+type EditableDrawerState = {
+  companyName: string;
+  contactType: string;
+  fullName: string;
+  role: string;
+  email: string;
+  phone: string;
+  notWorked: boolean;
+  otherContacts: string;
+  svgLeadType: string;
+  svgToBeCalledBy: string;
+  svgHistoryCalls: string;
+  svgHistoryNotes: string;
+  svgToBeCalledOn: string;
+  bentonLeadType: string;
+  bentonToBeCalledBy: string;
+  bentonHistoryCalls: string;
+  bentonHistoryNotes: string;
+  bentonToBeCalledOn: string;
+};
+
+function getEditableState(row: EverBeenHotRow): EditableDrawerState {
+  return {
+    companyName: row.companyName,
+    contactType: row.contactType,
+    fullName: row.fullName,
+    role: row.role ?? "",
+    email: row.email,
+    phone: row.phone,
+    notWorked: row.notWorked ?? false,
+    otherContacts: "",
+    svgLeadType: row.svgLeadType,
+    svgToBeCalledBy: row.svgToBeCalledBy,
+    svgHistoryCalls: defaultHistoryCalls,
+    svgHistoryNotes: defaultHistoryNotes,
+    svgToBeCalledOn: row.svgLastCallDate,
+    bentonLeadType: row.bentonLeadType,
+    bentonToBeCalledBy: row.bentonToBeCalledBy,
+    bentonHistoryCalls: defaultHistoryCalls,
+    bentonHistoryNotes: defaultHistoryNotes,
+    bentonToBeCalledOn: row.bentonLastCallDate,
+  };
+}
 
 function escapeHtml(value: string) {
   return value
@@ -30,6 +88,10 @@ function escapeHtml(value: string) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+}
+
+function stripTimezonePrefix(timezone: string | undefined) {
+  return (timezone ?? "").replace(/^\d+-/, "");
 }
 
 export function EverBeenHotDrawer({
@@ -42,8 +104,47 @@ export function EverBeenHotDrawer({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [copied, setCopied] = useState(false);
+  const [formState, setFormState] = useState<{
+    key: string;
+    value: EditableDrawerState;
+  } | null>(null);
 
   const row = selectedIndex === null ? null : (data[selectedIndex] ?? null);
+  const rowKey = row?.email ?? "";
+  const initialForm = useMemo(() => (row ? getEditableState(row) : null), [row]);
+  const form = formState?.key === rowKey ? formState.value : initialForm;
+
+  const companyOptions = useMemo(
+    () =>
+      COMPANY_VALUES.map((company) => ({
+        label: `${company.name} (${company.symbol})`,
+        value: company.name,
+      })),
+    [],
+  );
+  const agentOptions = useMemo(
+    () =>
+      AGENT_VALUES.map((agent) => {
+        const fullName = `${agent.name} ${agent.surname}`;
+        return { label: fullName, value: fullName };
+      }),
+    [],
+  );
+  const leadTypeOptions = useMemo(
+    () => LEAD_TYPE_VALUES.map((value) => ({ label: value, value })),
+    [],
+  );
+  const contactTypeOptions = useMemo(
+    () => CONTACT_TYPE_VALUES.map((value) => ({ label: value, value })),
+    [],
+  );
+  const selectedCompany = useMemo(
+    () => COMPANY_VALUES.find((company) => company.name === form?.companyName),
+    [form?.companyName],
+  );
+  const selectedTimezone = stripTimezonePrefix(
+    selectedCompany?.timezone ?? row?.timezone,
+  );
 
   const detailItems = useMemo(() => {
     if (!row) return [];
@@ -80,12 +181,25 @@ export function EverBeenHotDrawer({
     return () => window.clearTimeout(timer);
   }, [copied]);
 
-  if (!row || selectedIndex === null) return null;
+  if (!row || selectedIndex === null || !form) return null;
 
   const currentIndex = selectedIndex;
 
   const goToIndex = (index: number) => {
     onSelectedIndexChange(index);
+  };
+
+  const updateForm = <Key extends keyof EditableDrawerState>(
+    key: Key,
+    value: EditableDrawerState[Key],
+  ) => {
+    setFormState((current) => ({
+      key: rowKey,
+      value: {
+        ...(current?.key === rowKey && current.value ? current.value : form),
+        [key]: value,
+      },
+    }));
   };
 
   const handleCopyUrl = async () => {
@@ -146,7 +260,6 @@ export function EverBeenHotDrawer({
       size="560px"
       header={
         <div className="flex w-full items-center justify-between gap-4">
-          {/* LEFT */}
           <div className="flex items-center gap-2">
             <button
               onClick={() => goToIndex(currentIndex - 1)}
@@ -175,7 +288,6 @@ export function EverBeenHotDrawer({
             </div>
           </div>
 
-          {/* RIGHT */}
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
@@ -188,7 +300,7 @@ export function EverBeenHotDrawer({
             </button>
             <button
               onClick={handleCopyUrl}
-              title="Print"
+              title="Copy URL"
               className="group flex h-7 w-7 items-center justify-center rounded border cursor-pointer border-slate-200 text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
             >
               <Link
@@ -202,138 +314,206 @@ export function EverBeenHotDrawer({
     >
       <div className="space-y-5">
         <DetailCard>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
               <CompanySymbolBadge
-                symbol={getCompanySymbol(row.companyName)}
+                symbol={getCompanySymbol(form.companyName)}
                 index={data.findIndex((item) => item.email === row.email)}
                 className="rounded"
               />
-              <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-widest text-slate-400">
-                  Company
-                </p>
-                <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-200">
-                  {row.companyName}
-                </p>
-              </div>
+              <EditableField label="Company">
+                <Select
+                  value={form.companyName}
+                  onChange={(value) => updateForm("companyName", String(value))}
+                  options={companyOptions}
+                  placeholder="Select company"
+                  className="py-1.5 text-xs"
+                />
+              </EditableField>
             </div>
             <TimezoneBadge
-              timezone={row.timezone}
+              timezone={selectedTimezone}
               index={data.findIndex((item) => item.email === row.email)}
             />
           </div>
         </DetailCard>
 
         <DetailCard label="Personal Details">
-          <Detail label="Full Name" value={row.fullName} />
-          <Detail label="Phone" value={row.phone} />
-          <Detail label="Email" value={row.email} />
+          <EditableField label="Full Name">
+            <TextInput
+              value={form.fullName}
+              onChange={(event) => updateForm("fullName", event.target.value)}
+              className="text-xs font-semibold"
+            />
+          </EditableField>
+          <EditableField label="Role">
+            <TextInput
+              value={form.role}
+              onChange={(event) => updateForm("role", event.target.value)}
+              className="text-xs font-semibold"
+            />
+          </EditableField>
+          <EditableField label="Phone">
+            <TextInput
+              value={form.phone}
+              onChange={(event) => updateForm("phone", event.target.value)}
+              className="text-xs font-semibold"
+            />
+          </EditableField>
+          <EditableField label="Email">
+            <TextInput
+              type="email"
+              value={form.email}
+              onChange={(event) => updateForm("email", event.target.value)}
+              className="text-xs font-semibold"
+            />
+          </EditableField>
         </DetailCard>
 
         <DetailCard label="Lead Details">
-          <Detail
-            label="Contact Type"
-            value={<TypeBadge value={row.contactType} kind="contact" />}
-          />
-          <Detail label="Last Fixed Date" value={row.lastFixedDate || "-"} />
-          <Detail
-            label="Not Work Anymore"
-            value={
-              !row.notWorked ? (
-                <Badge variant="success">Yes</Badge>
-              ) : (
-                <Badge>No</Badge>
-              )
-            }
-          />
+          <EditableField label="Contact Type">
+            <Select
+              value={form.contactType}
+              onChange={(value) => updateForm("contactType", String(value))}
+              options={contactTypeOptions}
+              placeholder="Select contact type"
+              className="py-1.5 text-xs"
+            />
+          </EditableField>
+          <EditableField label="Not Work Anymore">
+            <CheckboxInput
+              checked={form.notWorked}
+              onChange={(event) =>
+                updateForm("notWorked", event.target.checked)
+              }
+              labelClassName="justify-end"
+            />
+          </EditableField>
         </DetailCard>
 
-        <DetailCard label="Other Contacts">-</DetailCard>
+        <DetailCard label="Other Contacts">
+          <EditableField label="Contacts" align="stack">
+            <Textarea
+              value={form.otherContacts}
+              onChange={(event) =>
+                updateForm("otherContacts", event.target.value)
+              }
+              className="text-xs font-semibold leading-5"
+            />
+          </EditableField>
+        </DetailCard>
 
         <DetailCard label="SVG Details">
-          <Detail
-            label="Contact Type"
-            value={<TypeBadge value={row.svgLeadType} kind="lead" />}
-          />
-          <Detail
-            label="History Calls"
-            value={
-              <>
-                04/17/2026 - LEVEL 2 TOM - No Answer
-                <br />
-                04/13/2026 - LEVEL 1 TOM - Left Voicemail
-                <br />
-                04/10/2026 - LEVEL 1 TOM - No Answer
-                <br />
-              </>
-            }
-          />
-          <Detail
-            label="History Notes"
-            value={
-              <>
-                04/17/2026 - LEVEL 2 TOM - No Answer
-                <br />
-                04/13/2026 - LEVEL 1 TOM - Left Voicemail
-                <br />
-                04/10/2026 - LEVEL 1 TOM - No Answer
-                <br />
-              </>
-            }
-          />
-          <Detail label="To Be Called By" value={row.svgToBeCalledBy || "-"} />
-          <Detail label="To Be Called On" value={row.svgLastCallDate || "-"} />
+          <EditableField label="Lead Type">
+            <Select
+              value={form.svgLeadType}
+              onChange={(value) => updateForm("svgLeadType", String(value))}
+              options={leadTypeOptions}
+              placeholder="Select lead type"
+              className="py-1.5 text-xs"
+            />
+          </EditableField>
+          <EditableField label="To Be Called By">
+            <Select
+              value={form.svgToBeCalledBy}
+              onChange={(value) => updateForm("svgToBeCalledBy", String(value))}
+              options={agentOptions}
+              placeholder="Select assignee"
+              className="py-1.5 text-xs"
+            />
+          </EditableField>
+          <EditableField label="To Be Called On">
+            <DateInput
+              value={form.svgToBeCalledOn}
+              onChange={(event) =>
+                updateForm("svgToBeCalledOn", event.target.value)
+              }
+              className="text-xs font-semibold"
+            />
+          </EditableField>
+          <EditableField label="History Calls" align="stack">
+            <Textarea
+              value={form.svgHistoryCalls}
+              onChange={(event) =>
+                updateForm("svgHistoryCalls", event.target.value)
+              }
+              className="text-xs font-semibold leading-5"
+            />
+          </EditableField>
+          <EditableField label="History Notes" align="stack">
+            <Textarea
+              value={form.svgHistoryNotes}
+              onChange={(event) =>
+                updateForm("svgHistoryNotes", event.target.value)
+              }
+              className="text-xs font-semibold leading-5"
+            />
+          </EditableField>
         </DetailCard>
 
         <DetailCard label="Benton Details">
-          <Detail
-            label="Contact Type"
-            value={<TypeBadge value={row.bentonLeadType} kind="lead" />}
-          />
-          <Detail
-            label="History Calls"
-            value={
-              <>
-                04/17/2026 - LEVEL 2 TOM - No Answer
-                <br />
-                04/13/2026 - LEVEL 1 TOM - Left Voicemail
-                <br />
-                04/10/2026 - LEVEL 1 TOM - No Answer
-                <br />
-              </>
-            }
-          />
-          <Detail
-            label="History Notes"
-            value={
-              <>
-                04/17/2026 - LEVEL 2 TOM - No Answer
-                <br />
-                04/13/2026 - LEVEL 1 TOM - Left Voicemail
-                <br />
-                04/10/2026 - LEVEL 1 TOM - No Answer
-                <br />
-              </>
-            }
-          />
-          <Detail label="To Be Called By" value={row.svgToBeCalledBy || "-"} />
-          <Detail label="To Be Called On" value={row.svgLastCallDate || "-"} />
+          <EditableField label="Lead Type">
+            <Select
+              value={form.bentonLeadType}
+              onChange={(value) => updateForm("bentonLeadType", String(value))}
+              options={leadTypeOptions}
+              placeholder="Select lead type"
+              className="py-1.5 text-xs"
+            />
+          </EditableField>
+          <EditableField label="To Be Called By">
+            <Select
+              value={form.bentonToBeCalledBy}
+              onChange={(value) =>
+                updateForm("bentonToBeCalledBy", String(value))
+              }
+              options={agentOptions}
+              placeholder="Select assignee"
+              className="py-1.5 text-xs"
+            />
+          </EditableField>
+          <EditableField label="To Be Called On">
+            <DateInput
+              value={form.bentonToBeCalledOn}
+              onChange={(event) =>
+                updateForm("bentonToBeCalledOn", event.target.value)
+              }
+              className="text-xs font-semibold"
+            />
+          </EditableField>
+          <EditableField label="History Calls" align="stack">
+            <Textarea
+              value={form.bentonHistoryCalls}
+              onChange={(event) =>
+                updateForm("bentonHistoryCalls", event.target.value)
+              }
+              className="text-xs font-semibold leading-5"
+            />
+          </EditableField>
+          <EditableField label="History Notes" align="stack">
+            <Textarea
+              value={form.bentonHistoryNotes}
+              onChange={(event) =>
+                updateForm("bentonHistoryNotes", event.target.value)
+              }
+              className="text-xs font-semibold leading-5"
+            />
+          </EditableField>
         </DetailCard>
 
         <DetailCard label="Associated Contacts">
-          <DetailCard label={row.lead}>
-            <Detail
+          <DetailCard label={form.companyName}>
+            <AssociationDetail
               label="Contact Type"
-              value={<TypeBadge value={row.contactType} kind="contact" />}
+              value={<TypeBadge value={form.contactType} kind="contact" />}
             />
-            <Detail
-              label="Lead Type"
-              value={<TypeBadge value={row.svgLeadType} kind="lead" />}
+            <AssociationDetail
+              label="SVG Lead Type"
+              value={<TypeBadge value={form.svgLeadType} kind="lead" />}
             />
-            <Detail
+            <AssociationDetail
               label="Benton Lead Type"
-              value={<TypeBadge value={row.bentonLeadType} kind="lead" />}
+              value={<TypeBadge value={form.bentonLeadType} kind="lead" />}
             />
           </DetailCard>
         </DetailCard>
@@ -363,15 +543,48 @@ function DetailCard({
   );
 }
 
-function Detail({ label, value }: { label: string; value: React.ReactNode }) {
+function EditableField({
+  label,
+  children,
+  align = "row",
+}: {
+  label: string;
+  children: React.ReactNode;
+  align?: "row" | "stack";
+}) {
   return (
-    <div className="flex items-start justify-between py-1">
-      <p className="text-[10px] uppercase tracking-widest text-slate-400">
+    <div
+      className={
+        align === "stack"
+          ? "space-y-1 py-2"
+          : "flex items-center justify-between gap-4 py-1.5"
+      }
+    >
+      <p className="shrink-0 text-[10px] uppercase tracking-widest text-slate-400">
         {label}
       </p>
-      <p className="text-xs font-semibold text-slate-600 dark:text-slate-200 truncate">
-        {value}
+      <div className={align === "stack" ? "w-full" : "w-64 max-w-[65%]"}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function AssociationDetail({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 py-1">
+      <p className="shrink-0 text-[10px] uppercase tracking-widest text-slate-400">
+        {label}
       </p>
+      <div className="min-w-0 text-right text-xs font-semibold text-slate-600 dark:text-slate-200">
+        {value}
+      </div>
     </div>
   );
 }
