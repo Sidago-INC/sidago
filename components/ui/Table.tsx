@@ -370,7 +370,7 @@ export function Table<T>({
                   [group.id]: !current[group.id],
                 }))
               }
-              className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100 cursor-pointer"
+              className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100 cursor-pointer dark:text-slate-200 dark:hover:bg-slate-800"
             >
               <span
                 className="flex items-center gap-2"
@@ -383,7 +383,7 @@ export function Table<T>({
                 )}
                 <span>{group.label}</span>
                 {showCounts && (
-                  <span className="rounded-md bg-slate-200 px-2 py-0.5 text-xs text-slate-700">
+                  <span className="rounded-md bg-slate-200 px-2 py-0.5 text-xs text-slate-700 dark:bg-slate-700 dark:text-slate-200">
                     {group.rows.length}
                   </span>
                 )}
@@ -402,14 +402,14 @@ export function Table<T>({
                   className={clsx(
                     "transition-colors duration-150",
                     onRowClick
-                      ? "cursor-pointer hover:bg-indigo-50/40"
-                      : "hover:bg-indigo-50/40",
+                      ? "cursor-pointer hover:bg-indigo-50/40 dark:hover:bg-slate-800"
+                      : "hover:bg-indigo-50/40 dark:hover:bg-slate-800",
                   )}
                 >
                   {columns.map((col) => (
                     <td
                       key={col.title}
-                      className="px-6 py-4 text-sm text-gray-700"
+                      className="px-6 py-4 text-sm text-gray-700 dark:text-slate-200 whitespace-nowrap"
                     >
                       {col.render ? col.render(row) : getCellValue(row, col)}
                     </td>
@@ -1246,7 +1246,7 @@ export function Table<T>({
                 className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-900"
               >
                 <FileDown size={16} />
-                <span>Export the data as SVG</span>
+                <span>Export the data as CSV</span>
               </button>
             </PopoverPanel>
           </Popover>

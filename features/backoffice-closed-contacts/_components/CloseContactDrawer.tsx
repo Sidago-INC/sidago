@@ -9,7 +9,7 @@ import {
 import type { Column } from "@/components/ui/Table";
 import type { ClosedContactRow } from "../_lib/data";
 import { getCompanySymbol } from "../_lib/data";
-import { Check, ChevronDown, ChevronUp, Copy, Printer } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Link, Printer } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import Comments from "@/features/backoffice-shared/Comments";
@@ -188,7 +188,7 @@ export function ClosedContactDrawer({
               {copied ? (
                 <Check className={`${iconClass} text-emerald-500`} />
               ) : (
-                <Copy
+                <Link
                   className={`${iconClass} transition group-hover:scale-110`}
                 />
               )}
@@ -289,7 +289,7 @@ function DetailCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded border border-slate-200 bg-slate-50 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+    <div className="rounded border border-slate-200 bg-slate-50 p-4 shadow-sm dark:border-slate-700 dark:bg-gray-800">
       {typeof label === "string" && (
         <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
           {label}
