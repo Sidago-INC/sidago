@@ -1,6 +1,8 @@
 export {
+  BooleanCheckBadge,
   CampaignBadge,
   CompanySymbolBadge,
+  EmailPriorityBadge,
   StatusBadge,
   TimezoneBadge,
   TypeBadge,
