@@ -313,7 +313,7 @@ export function CurrentlyHotDrawer({
           </div>
         </div>
       }
-      footer={<Revisions />}
+      // footer={<Revisions />}
     >
       <div className="space-y-5">
         <DetailCard>

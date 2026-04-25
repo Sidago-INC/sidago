@@ -326,7 +326,7 @@ export function ClosedContactDrawer({
           </div>
         </div>
       }
-      footer={<Comments />}
+      // footer={<Comments />}
     >
       <div className="space-y-5">
         {/* Company identity */}

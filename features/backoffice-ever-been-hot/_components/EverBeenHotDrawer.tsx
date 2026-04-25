@@ -311,7 +311,7 @@ export function EverBeenHotDrawer({
           </div>
         </div>
       }
-      footer={<Revisions />}
+      // footer={<Revisions />}
     >
       <div className="space-y-5">
         <DetailCard>

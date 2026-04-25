@@ -204,7 +204,7 @@ export function RecentInterestDrawer({
           </div>
         </div>
       }
-      footer={<Comments />}
+      // footer={<Comments />}
     >
       <div className="space-y-5">
         <DetailCard>
