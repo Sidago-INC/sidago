@@ -5,6 +5,7 @@ import {
   CompanySymbolBadge,
   DateInput,
   Drawer,
+  EditableDrawerFooter,
   EmailLink,
   Select,
   Textarea,
@@ -17,11 +18,11 @@ import { getCompanySymbol, type UnassignedHotLeadRow } from "../_lib/data";
 import { ChevronDown, ChevronUp, Link, Printer } from "lucide-react";
 import { isValidElement, useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import Revisions from "@/features/backoffice-shared/Revisions";
 import { AGENT_VALUES } from "@/types/agent.types";
 import { COMPANY_VALUES } from "@/types/company.types";
 import { CONTACT_TYPE_VALUES } from "@/types/contact-type.types";
 import { LEAD_TYPE_VALUES } from "@/types/lead-type.types";
+import { showSuccessToast } from "@/lib/toast";
 
 type UnassignedHotLeadsDrawerProps = {
   data: UnassignedHotLeadRow[];
@@ -199,6 +200,14 @@ export function UnassignedHotLeadsDrawer({
     }));
   };
 
+  const handleReset = () => {
+    setFormState(null);
+  };
+
+  const handleSave = () => {
+    showSuccessToast("Lead changes saved successfully.");
+  };
+
   const handleCopyUrl = async () => {
     if (!drawerUrl) return;
 
@@ -307,7 +316,13 @@ export function UnassignedHotLeadsDrawer({
           </div>
         </div>
       }
-      // footer={<Revisions />}
+      footer={
+        <EditableDrawerFooter
+          onCancel={onClose}
+          onReset={handleReset}
+          onSave={handleSave}
+        />
+      }
     >
       <div className="space-y-5">
         <DetailCard>

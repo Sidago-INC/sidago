@@ -5,6 +5,7 @@ import {
   CompanySymbolBadge,
   DateInput,
   Drawer,
+  EditableDrawerFooter,
   EmailLink,
   Select,
   Textarea,
@@ -35,8 +36,8 @@ import {
 } from "lucide-react";
 import { isValidElement, useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import Comments from "@/features/backoffice-shared/Comments";
 import { OutcomeButton } from "@/features/agent-calls/_components/OutcomeButton";
+import { showSuccessToast } from "@/lib/toast";
 
 type ClosedContactDrawerProps = {
   data: ClosedContactRow[];
@@ -213,6 +214,14 @@ export function ClosedContactDrawer({
     }));
   };
 
+  const handleReset = () => {
+    setFormState(null);
+  };
+
+  const handleSave = () => {
+    showSuccessToast("Closed contact changes saved successfully.");
+  };
+
   const handleCopyUrl = async () => {
     if (!drawerUrl) return;
     await navigator.clipboard.writeText(drawerUrl);
@@ -326,7 +335,13 @@ export function ClosedContactDrawer({
           </div>
         </div>
       }
-      // footer={<Comments />}
+      footer={
+        <EditableDrawerFooter
+          onCancel={onClose}
+          onReset={handleReset}
+          onSave={handleSave}
+        />
+      }
     >
       <div className="space-y-5">
         {/* Company identity */}

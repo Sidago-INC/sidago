@@ -13,6 +13,7 @@ export { DateInput } from "./DateInput";
 export { Drawer } from "./Drawer";
 export type { DrawerProps, DrawerDirection } from "./Drawer";
 export { DropdownPanel } from "./DropdownPanel";
+export { EditableDrawerFooter } from "./EditableDrawerFooter";
 export { EmailLink } from "./EmailLink";
 export { Card, CardContent } from "./Card";
 export { CardShell } from "./CardShell";
