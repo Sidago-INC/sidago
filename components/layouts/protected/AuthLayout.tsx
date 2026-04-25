@@ -8,8 +8,10 @@ import { PrivateRoute } from "@/components/guards/PrivateRoute";
 
 export function AuthLayout({ children }: { children: ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(280);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const { navigations } = useAuth();
+  const currentSidebarWidth = isCollapsed ? 80 : sidebarWidth;
 
   return (
     <PrivateRoute>
@@ -17,15 +19,18 @@ export function AuthLayout({ children }: { children: ReactNode }) {
         <Sidebar
           isCollapsed={isCollapsed}
           setIsCollapsed={setIsCollapsed}
+          sidebarWidth={sidebarWidth}
+          setSidebarWidth={setSidebarWidth}
           navigations={navigations}
         />
 
         <div
-          className={`flex min-w-0 flex-1 flex-col transition-all duration-300 ease-in-out ${
-            isCollapsed
-              ? "md:ml-20 md:w-[calc(100%-5rem)]"
-              : "md:md:ml-70 md:w-[calc(100%-280px)]"
-          }`}
+          className="flex min-w-0 flex-1 flex-col transition-all duration-300 ease-in-out md:ml-[var(--sidebar-width)] md:w-[calc(100%_-_var(--sidebar-width))]"
+          style={
+            {
+              "--sidebar-width": `${currentSidebarWidth}px`,
+            } as React.CSSProperties
+          }
         >
           <Header onMenuClick={() => setIsMobileOpen(true)} />
 
