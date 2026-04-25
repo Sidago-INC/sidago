@@ -11,7 +11,8 @@ import {
   contactTypeOptions,
   getCompanySymbol,
   getCompanySymbolOptions,
-  leadOptions,
+  getLeadId,
+  getLeadIdOptions,
   leadTypeOptions,
   timezoneOptions,
   UnassignedHotLeadRow,
@@ -61,10 +62,14 @@ export function UnassignedHotLeadsTable({
   const columns = useMemo<Column<UnassignedHotLeadRow>[]>(() => {
     const baseColumns: Column<UnassignedHotLeadRow>[] = [
       {
-        title: "Lead",
+        title: "Lead ID",
         key: "lead",
+        getValue: (row) => getLeadId(row),
         type: "select",
-        options: leadOptions.map((value) => ({ label: value, value })),
+        options: getLeadIdOptions(data).map((value) => ({
+          label: value,
+          value,
+        })),
       },
       {
         title: "Company Symbol",

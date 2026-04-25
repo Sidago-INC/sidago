@@ -9,7 +9,8 @@ import {
   contactTypeOptions,
   getCompanySymbol,
   getCompanySymbolOptions,
-  leadOptions,
+  getLeadId,
+  getLeadIdOptions,
   leadTypeOptions,
   timezoneOptions,
 } from "../_lib/data";
@@ -49,10 +50,14 @@ export function ClosedContactsTable({ data, title }: ClosedContactsTableProps) {
   const columns = useMemo<Column<ClosedContactRow>[]>(
     () => [
       {
-        title: "Lead",
+        title: "Lead ID",
         key: "lead",
+        getValue: (row) => getLeadId(row),
         type: "select",
-        options: leadOptions.map((value) => ({ label: value, value })),
+        options: getLeadIdOptions(data).map((value) => ({
+          label: value,
+          value,
+        })),
       },
       {
         title: "Company Symbol",

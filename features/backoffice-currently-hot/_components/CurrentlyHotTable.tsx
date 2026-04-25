@@ -9,8 +9,9 @@ import {
   contactTypeOptions,
   getCompanySymbol,
   getCompanySymbolOptions,
+  getLeadId,
+  getLeadIdOptions,
   LeadRow,
-  leadOptions,
   leadTypeOptions,
   timezoneOptions,
 } from "../_lib/data";
@@ -60,10 +61,14 @@ export function CurrentlyHotTable({
   const columns = useMemo<Column<LeadRow>[]>(() => {
     const baseColumns: Column<LeadRow>[] = [
       {
-        title: "Lead",
+        title: "Lead ID",
         key: "lead",
+        getValue: (row) => getLeadId(row),
         type: "select",
-        options: leadOptions.map((value) => ({ label: value, value })),
+        options: getLeadIdOptions(data).map((value) => ({
+          label: value,
+          value,
+        })),
       },
       {
         title: "Company Symbol",

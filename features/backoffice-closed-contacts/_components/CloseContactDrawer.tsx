@@ -6,13 +6,18 @@ import {
   DateInput,
   Drawer,
   EmailLink,
+  Select,
   Textarea,
   TextInput,
   TimezoneBadge,
 } from "@/components/ui";
 import type { Column } from "@/components/ui/Table";
 import type { ClosedContactRow } from "../_lib/data";
-import { getCompanySymbol } from "../_lib/data";
+import {
+  contactTypeOptions,
+  getCompanySymbol,
+  leadTypeOptions,
+} from "../_lib/data";
 import {
   Ban,
   Check,
@@ -101,6 +106,8 @@ type EditableClosedContactState = {
   fullName: string;
   phone: string;
   email: string;
+  contactType: string;
+  bentonLeadType: string;
   notes: string;
   additionalContacts: string;
   doesNotWorkAnymore: boolean;
@@ -113,6 +120,8 @@ function getEditableState(row: ClosedContactRow): EditableClosedContactState {
     fullName: row.fullName,
     phone: row.phone,
     email: row.email,
+    contactType: row.contactType,
+    bentonLeadType: row.bentonLeadType,
     notes: "",
     additionalContacts: "",
     doesNotWorkAnymore: false,
@@ -344,25 +353,38 @@ export function ClosedContactDrawer({
 
         {/* Contact info */}
         <DetailCard label="Personal Details">
-          <EditableField label="Full Name">
-            <TextInput
-              value={form.fullName}
-              onChange={(event) => updateForm("fullName", event.target.value)}
-              className="text-xs font-semibold"
-            />
-          </EditableField>
-          <EditableField label="Phone">
-            <TextInput
-              value={form.phone}
-              onChange={(event) => updateForm("phone", event.target.value)}
-              className="text-xs font-semibold"
-            />
-          </EditableField>
+          <Detail label="Full Name" value={form.fullName || "-"} />
+          <Detail label="Phone" value={form.phone || "-"} />
           <EditableField label="Email">
             <TextInput
               type="email"
               value={form.email}
               onChange={(event) => updateForm("email", event.target.value)}
+              className="text-xs font-semibold"
+            />
+          </EditableField>
+        </DetailCard>
+
+        <DetailCard label="Lead Details">
+          <EditableField label="Contact Type">
+            <Select
+              value={form.contactType}
+              onChange={(value) => updateForm("contactType", String(value))}
+              options={contactTypeOptions.map((value) => ({
+                label: value,
+                value,
+              }))}
+              className="text-xs font-semibold"
+            />
+          </EditableField>
+          <EditableField label="Lead Type Benton">
+            <Select
+              value={form.bentonLeadType}
+              onChange={(value) => updateForm("bentonLeadType", String(value))}
+              options={leadTypeOptions.map((value) => ({
+                label: value,
+                value,
+              }))}
               className="text-xs font-semibold"
             />
           </EditableField>
@@ -505,7 +527,7 @@ function EditableField({
             className={`w-full cursor-text rounded border border-gray-300 bg-white text-xs font-semibold text-slate-600 transition focus:border-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-slate-200 ${
               align === "stack"
                 ? "min-h-[98px] px-3 py-2 text-left whitespace-pre-line"
-                : "min-h-[30px] px-3 py-1.5 text-right truncate"
+                : "min-h-[30px] px-3 py-1.5 text-left truncate"
             }`}
           >
             {preview}
@@ -558,6 +580,6 @@ function EmptyPreview({
 
 function HistoryText({ value }: { value: string }) {
   return (
-    <span className="whitespace-pre-line text-right leading-5">{value}</span>
+    <span className="block whitespace-pre-line text-left leading-5">{value}</span>
   );
 }

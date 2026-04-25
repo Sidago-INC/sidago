@@ -2,6 +2,7 @@
 
 import { CampaignBadge, TypeBadge } from "@/components/ui";
 import { Table, type Column } from "@/components/ui/Table";
+import { getLeadId, getLeadIdOptions } from "@/features/backoffice-shared/constants";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useMemo } from "react";
 import { RecentInterestDrawer } from "./RecentInterestDrawer";
@@ -10,7 +11,6 @@ import {
   recentInterestAssigneeOptions,
   recentInterestCallResultOptions,
   recentInterestCampaignOptions,
-  recentInterestLeadOptions,
   recentInterestLeadTypeOptions,
 } from "../_lib/data";
 
@@ -58,10 +58,11 @@ export function RecentInterestTable({ data, title }: RecentInterestTableProps) {
         type: "date",
       },
       {
-        title: "Lead",
+        title: "Lead ID",
         key: "lead",
+        getValue: (row) => getLeadId(row),
         type: "select",
-        options: recentInterestLeadOptions.map((value) => ({
+        options: getLeadIdOptions(data).map((value) => ({
           label: value,
           value,
         })),
@@ -110,7 +111,7 @@ export function RecentInterestTable({ data, title }: RecentInterestTableProps) {
       { title: "Notes", key: "notes" },
       { title: "Phone", key: "phone" },
     ],
-    [],
+    [data],
   );
 
   return (

@@ -60,10 +60,30 @@ export function getCompanySymbol(companyName: string): string {
     .join("");
 }
 
+export function getLeadId(row: { companyName: string; lead: string }): string {
+  const companySymbol = getCompanySymbol(row.companyName);
+
+  if (!companySymbol) {
+    return row.lead;
+  }
+
+  if (!row.lead) {
+    return companySymbol;
+  }
+
+  return `${companySymbol}-${row.lead}`;
+}
+
 export function getCompanySymbolOptions(
   rows: { companyName: string }[],
 ): string[] {
   return Array.from(
     new Set(rows.map((row) => getCompanySymbol(row.companyName))),
   );
+}
+
+export function getLeadIdOptions(
+  rows: { companyName: string; lead: string }[],
+): string[] {
+  return Array.from(new Set(rows.map((row) => getLeadId(row))));
 }
