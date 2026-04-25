@@ -12,7 +12,6 @@ import {
   Ellipsis,
   FileDown,
   Printer,
-  GripVertical,
   Plus,
   Search,
   Trash2,
@@ -49,15 +48,27 @@ type FilterOperator =
   | "is_not"
   | "is_empty"
   | "is_not_empty";
-type FilterJoin = "and" | "or";
+type FilterGate = "AND" | "OR";
 
 type FilterCondition = {
   id: string;
-  join: FilterJoin;
   field: string;
   operator: FilterOperator;
   value: string;
 };
+
+type FilterItem =
+  | {
+      id: string;
+      type: "condition";
+      condition: FilterCondition;
+    }
+  | {
+      id: string;
+      type: "group";
+      gate: FilterGate;
+      conditions: FilterCondition[];
+    };
 
 type GroupRule = {
   field: string;
@@ -110,10 +121,26 @@ function renderCellValue<T>(row: T, column: Column<T>) {
 function createFilterCondition(field = ""): FilterCondition {
   return {
     id: Math.random().toString(36).slice(2, 9),
-    join: "and",
     field,
     operator: "contains",
     value: "",
+  };
+}
+
+function createFilterItem(field = ""): FilterItem {
+  return {
+    id: Math.random().toString(36).slice(2, 9),
+    type: "condition",
+    condition: createFilterCondition(field),
+  };
+}
+
+function createFilterGroup(field = ""): FilterItem {
+  return {
+    id: Math.random().toString(36).slice(2, 9),
+    type: "group",
+    gate: "AND",
+    conditions: [createFilterCondition(field)],
   };
 }
 
@@ -153,6 +180,7 @@ export function Table<T>({
   >({});
   const [filterSearch, setFilterSearch] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [rootFilterGate, setRootFilterGate] = useState<FilterGate>("AND");
   const selectableColumns = useMemo(
     () =>
       columns.map((column) => ({
@@ -165,9 +193,7 @@ export function Table<T>({
     () => new Map(columns.map((column) => [String(column.key), column])),
     [columns],
   );
-  const [filterConditions, setFilterConditions] = useState<FilterCondition[]>(
-    [],
-  );
+  const [filterItems, setFilterItems] = useState<FilterItem[]>([]);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [pageState, setPageState] = useState({
     page: 1,
@@ -187,19 +213,11 @@ export function Table<T>({
         return false;
       }
 
-      const activeConditions = filterConditions.filter(
-        (condition) =>
-          condition.field &&
-          (!operatorNeedsValue(condition.operator) || condition.value.trim()),
-      );
+      const isActiveCondition = (condition: FilterCondition) =>
+        condition.field &&
+        (!operatorNeedsValue(condition.operator) || condition.value.trim());
 
-      if (activeConditions.length === 0) {
-        return true;
-      }
-
-      let result: boolean | null = null;
-
-      for (const condition of activeConditions) {
+      const matchesCondition = (condition: FilterCondition) => {
         const value = String(
           getCellValue(
             row,
@@ -207,33 +225,59 @@ export function Table<T>({
           ) ?? "",
         ).toLowerCase();
         const query = condition.value.trim().toLowerCase();
-        const matchesCondition =
-          condition.operator === "contains"
-            ? value.includes(query)
-            : condition.operator === "does_not_contain"
-              ? !value.includes(query)
-              : condition.operator === "is"
-                ? value === query
-                : condition.operator === "is_not"
-                  ? value !== query
-                  : condition.operator === "is_empty"
-                    ? value.trim() === ""
-                    : value.trim() !== "";
 
-        if (result === null) {
-          result = matchesCondition;
-          continue;
-        }
+        return condition.operator === "contains"
+          ? value.includes(query)
+          : condition.operator === "does_not_contain"
+            ? !value.includes(query)
+            : condition.operator === "is"
+              ? value === query
+              : condition.operator === "is_not"
+                ? value !== query
+                : condition.operator === "is_empty"
+                  ? value.trim() === ""
+                  : value.trim() !== "";
+      };
 
-        result =
-          condition.join === "and"
-            ? result && matchesCondition
-            : result || matchesCondition;
+      const activeItems = filterItems
+        .map((item) => {
+          if (item.type === "condition") {
+            return isActiveCondition(item.condition)
+              ? {
+                  id: item.id,
+                  matches: matchesCondition(item.condition),
+                }
+              : null;
+          }
+
+          const activeGroupConditions =
+            item.conditions.filter(isActiveCondition);
+
+          if (activeGroupConditions.length === 0) {
+            return null;
+          }
+
+          return {
+            id: item.id,
+            matches:
+              item.gate === "AND"
+                ? activeGroupConditions.every(matchesCondition)
+                : activeGroupConditions.some(matchesCondition),
+          };
+        })
+        .filter((item): item is { id: string; matches: boolean } =>
+          Boolean(item),
+        );
+
+      if (activeItems.length === 0) {
+        return true;
       }
 
-      return result ?? true;
+      return rootFilterGate === "AND"
+        ? activeItems.every((item) => item.matches)
+        : activeItems.some((item) => item.matches);
     });
-  }, [columnMap, columns, data, filterConditions, filterSearch]);
+  }, [columnMap, columns, data, filterItems, filterSearch, rootFilterGate]);
   const processedData = useMemo(() => {
     const activeSortRules = sortRules.filter((rule) => rule.field);
 
@@ -330,7 +374,8 @@ export function Table<T>({
     () =>
       JSON.stringify({
         filterSearch,
-        filterConditions,
+        filterItems,
+        rootFilterGate,
         sortRules,
         groupRules,
         rowsPerPage,
@@ -340,9 +385,10 @@ export function Table<T>({
     [
       columns,
       data.length,
-      filterConditions,
+      filterItems,
       filterSearch,
       groupRules,
+      rootFilterGate,
       rowsPerPage,
       sortRules,
     ],
@@ -579,6 +625,135 @@ export function Table<T>({
   };
 
   // 🔹 Loading
+  const isFilterConditionActive = (condition: FilterCondition) =>
+    Boolean(
+      condition.field &&
+        (!operatorNeedsValue(condition.operator) || condition.value.trim()),
+    );
+
+  const activeFilterConditionCount = filterItems.reduce((count, item) => {
+    if (item.type === "condition") {
+      return count + Number(isFilterConditionActive(item.condition));
+    }
+
+    return count + item.conditions.filter(isFilterConditionActive).length;
+  }, Number(Boolean(filterSearch.trim())));
+
+  const filterOperatorOptions = [
+    { label: "contains", value: "contains" },
+    { label: "does not contain", value: "does_not_contain" },
+    { label: "is", value: "is" },
+    { label: "is not", value: "is_not" },
+    { label: "is empty", value: "is_empty" },
+    { label: "is not empty", value: "is_not_empty" },
+  ];
+
+  const updateFilterItemCondition = (
+    itemId: string,
+    updater: (condition: FilterCondition) => FilterCondition,
+  ) => {
+    setFilterItems((items) =>
+      items.map((item) =>
+        item.id === itemId && item.type === "condition"
+          ? { ...item, condition: updater(item.condition) }
+          : item,
+      ),
+    );
+  };
+
+  const updateFilterGroupCondition = (
+    groupId: string,
+    conditionId: string,
+    updater: (condition: FilterCondition) => FilterCondition,
+  ) => {
+    setFilterItems((items) =>
+      items.map((item) =>
+        item.id === groupId && item.type === "group"
+          ? {
+              ...item,
+              conditions: item.conditions.map((condition) =>
+                condition.id === conditionId ? updater(condition) : condition,
+              ),
+            }
+          : item,
+      ),
+    );
+  };
+
+  const renderFilterConditionRow = ({
+    condition,
+    connectorLabel,
+    onChange,
+    onRemove,
+  }: {
+    condition: FilterCondition;
+    connectorLabel: string;
+    onChange: (condition: FilterCondition) => void;
+    onRemove: () => void;
+  }) => {
+    return (
+      <div
+        key={condition.id}
+        className="grid gap-2 md:grid-cols-[auto_1fr_1fr_1.3fr_auto] md:items-center"
+      >
+        <span className="px-2 text-sm font-medium text-slate-600 dark:text-slate-300">
+          {connectorLabel}
+        </span>
+
+        <Select
+          value={condition.field}
+          onChange={(value) =>
+            onChange({ ...condition, field: value as string, value: "" })
+          }
+          options={selectableColumns}
+          placeholder=""
+          className="h-10 rounded text-sm"
+          floatingOptions
+        />
+
+        <Select
+          value={condition.operator}
+          onChange={(value) => {
+            const operator = value as FilterOperator;
+            onChange({
+              ...condition,
+              operator,
+              value: operatorNeedsValue(operator) ? condition.value : "",
+            });
+          }}
+          options={filterOperatorOptions}
+          placeholder=""
+          className="h-10 rounded text-sm"
+          floatingOptions
+        />
+
+        {!operatorNeedsValue(condition.operator) ? (
+          <div className="flex h-10 items-center rounded-lg border border-dashed border-slate-200 px-3 text-sm text-slate-400 dark:border-slate-700 dark:text-slate-500">
+            No value needed
+          </div>
+        ) : (
+          <Input
+            value={condition.value}
+            onChange={(event) =>
+              onChange({ ...condition, value: event.target.value })
+            }
+            placeholder="Enter a value"
+            className="h-10 rounded border bg-white px-4 py-2 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-indigo-500 focus:outline-none dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500"
+          />
+        )}
+
+        <button
+          type="button"
+          onClick={onRemove}
+          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200"
+          aria-label="Remove condition"
+        >
+          <Trash2 size={16} />
+        </button>
+      </div>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="bg-white shadow p-4 space-y-3">
@@ -624,7 +799,7 @@ export function Table<T>({
 
             <PopoverPanel
               anchor="bottom end"
-              className="w-screen md:w-2xl border border-slate-200 shadow-2xl bg-white rounded-xl p-2 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/70 flex flex-col overflow-hidden"
+              className="w-screen md:w-2xl border border-slate-200 shadow-2xl bg-white rounded-xl p-2 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/70 flex flex-col overflow-visible"
             >
               <div className="space-y-3">
                 {groupRules.map((groupRule, index) => (
@@ -826,173 +1001,136 @@ export function Table<T>({
           <Popover className="relative">
             <PopoverButton className={toolbarButtonClass}>
               Filter
-              {(filterSearch.trim() ||
-                filterConditions.some((condition) =>
-                  condition.value.trim(),
-                )) && (
+              {activeFilterConditionCount > 0 && (
                 <span className="ml-1 inline-flex min-w-5 items-center justify-center rounded-md bg-slate-800 px-1.5 py-0.5 text-[11px] font-semibold text-white">
-                  {Number(Boolean(filterSearch.trim())) +
-                    filterConditions.filter((condition) =>
-                      condition.value.trim(),
-                    ).length}
+                  {activeFilterConditionCount}
                 </span>
               )}
             </PopoverButton>
 
             <PopoverPanel
               anchor="bottom end"
-              className="w-screen md:w-2xl border border-slate-200 shadow-2xl bg-white rounded-xl p-2 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/70 flex flex-col overflow-hidden"
+              className="w-screen md:w-2xl border border-slate-200 shadow-2xl bg-white rounded-xl p-2 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/70 flex flex-col overflow-visible"
             >
               <div className="flex flex-col gap-4">
                 <div className="space-y-2">
-                  {filterConditions.length === 0 && (
+                  {filterItems.length === 0 && (
                     <div className="rounded-xl border border-dashed border-slate-300 px-4 py-5 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
                       No conditions yet. Add one below.
                     </div>
                   )}
 
-                  {filterConditions.map((condition, index) => {
-                    const currentColumn = columnMap.get(condition.field);
+                  {filterItems.map((item, itemIndex) => {
+                    const rootConnector =
+                      itemIndex === 0 ? "Where" : rootFilterGate;
+
+                    if (item.type === "condition") {
+                      return renderFilterConditionRow({
+                        condition: item.condition,
+                        connectorLabel: rootConnector,
+                        onChange: (condition) =>
+                          updateFilterItemCondition(item.id, () => condition),
+                        onRemove: () =>
+                          setFilterItems((items) =>
+                            items.filter((candidate) => candidate.id !== item.id),
+                          ),
+                      });
+                    }
 
                     return (
                       <div
-                        key={condition.id}
-                        className="grid gap-2 md:grid-cols-[auto_1fr_1fr_1.3fr_auto_auto] md:items-center"
+                        key={item.id}
+                        className="space-y-3 rounded-xl border border-slate-200 p-3 dark:border-slate-800"
                       >
-                        {index === 0 ? (
-                          <span className="px-2 text-sm text-slate-600 dark:text-slate-300">
-                            Where
-                          </span>
-                        ) : (
-                          <Select
-                            value={condition.join}
-                            onChange={(value) =>
-                              setFilterConditions((items) =>
-                                items.map((item) =>
-                                  item.id === condition.id
-                                    ? { ...item, join: value as FilterJoin }
-                                    : item,
-                                ),
-                              )
-                            }
-                            options={[
-                              { label: "and", value: "and" },
-                              { label: "or", value: "or" },
-                            ]}
-                            placeholder=""
-                            className="h-10 rounded text-sm"
-                          />
-                        )}
-
-                        <Select
-                          value={condition.field}
-                          onChange={(value) =>
-                            setFilterConditions((items) =>
-                              items.map((item) =>
-                                item.id === condition.id
-                                  ? { ...item, field: value as string, value: "" }
-                                  : item,
-                              ),
-                            )
-                          }
-                          options={selectableColumns}
-                          placeholder=""
-                          className="h-10 rounded text-sm"
-                        />
-
-                        <Select
-                          value={condition.operator}
-                          onChange={(value) =>
-                            setFilterConditions((items) =>
-                              items.map((item) =>
-                                item.id === condition.id
-                                  ? {
-                                      ...item,
-                                      operator: value as FilterOperator,
-                                      value: operatorNeedsValue(
-                                        value as FilterOperator,
-                                      )
-                                        ? item.value
-                                        : "",
-                                    }
-                                  : item,
-                              ),
-                            )
-                          }
-                          options={[
-                            { label: "contains", value: "contains" },
-                            {
-                              label: "does not contain",
-                              value: "does_not_contain",
-                            },
-                            { label: "is", value: "is" },
-                            { label: "is not", value: "is_not" },
-                            { label: "is empty", value: "is_empty" },
-                            {
-                              label: "is not empty",
-                              value: "is_not_empty",
-                            },
-                          ]}
-                          placeholder=""
-                          className="h-10 rounded text-sm"
-                        />
-
-                        {!operatorNeedsValue(condition.operator) ? (
-                          <div className="flex h-10 items-center rounded-lg border border-dashed border-slate-200 px-3 text-sm text-slate-400 dark:border-slate-700 dark:text-slate-500">
-                            No value needed
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 text-sm font-medium text-slate-600 dark:text-slate-300">
+                              {rootConnector}
+                            </span>
+                            <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                              Condition group
+                            </span>
                           </div>
-                        ) : currentColumn?.type === "select" ? (
-                          <Select
-                            value={condition.value}
-                            onChange={(value) =>
-                              setFilterConditions((items) =>
-                                items.map((item) =>
-                                  item.id === condition.id
-                                    ? { ...item, value: value as string }
-                                    : item,
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setFilterItems((items) =>
+                                  items.filter(
+                                    (candidate) => candidate.id !== item.id,
+                                  ),
+                                )
+                              }
+                              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200"
+                              aria-label="Remove condition group"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          {item.conditions.map((condition, conditionIndex) =>
+                            renderFilterConditionRow({
+                              condition,
+                              connectorLabel:
+                                conditionIndex === 0 ? "Where" : item.gate,
+                              onChange: (nextCondition) =>
+                                updateFilterGroupCondition(
+                                  item.id,
+                                  condition.id,
+                                  () => nextCondition,
                                 ),
-                              )
-                            }
-                            options={currentColumn.options ?? []}
-                            placeholder="Select an option"
-                            className="h-10 rounded text-sm"
-                          />
-                        ) : (
-                          <Input
-                            value={condition.value}
-                            onChange={(e) =>
-                              setFilterConditions((items) =>
-                                items.map((item) =>
-                                  item.id === condition.id
-                                    ? { ...item, value: e.target.value }
-                                    : item,
+                              onRemove: () =>
+                                setFilterItems((items) =>
+                                  item.conditions.length <= 1
+                                    ? items.filter(
+                                        (candidate) =>
+                                          candidate.id !== item.id,
+                                      )
+                                    : items.map((candidate) =>
+                                        candidate.id === item.id &&
+                                        candidate.type === "group"
+                                          ? {
+                                              ...candidate,
+                                              conditions:
+                                                candidate.conditions.filter(
+                                                  (groupCondition) =>
+                                                    groupCondition.id !==
+                                                    condition.id,
+                                                ),
+                                            }
+                                          : candidate,
+                                      ),
                                 ),
-                              )
-                            }
-                            placeholder="Enter a value"
-                            className="h-10 rounded text-sm"
-                          />
-                        )}
+                            }),
+                          )}
+                        </div>
 
                         <button
                           type="button"
                           onClick={() =>
-                            setFilterConditions((items) =>
-                              items.filter((item) => item.id !== condition.id),
+                            setFilterItems((items) =>
+                              items.map((candidate) =>
+                                candidate.id === item.id &&
+                                candidate.type === "group"
+                                  ? {
+                                      ...candidate,
+                                      conditions: [
+                                        ...candidate.conditions,
+                                        createFilterCondition(
+                                          selectableColumns[0]?.value ?? "",
+                                        ),
+                                      ],
+                                    }
+                                  : candidate,
+                              ),
                             )
                           }
-                          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200"
-                          aria-label="Remove condition"
+                          className="inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-600 hover:text-sky-700 dark:text-slate-300 dark:hover:text-sky-300"
                         >
-                          <Trash2 size={16} />
-                        </button>
-
-                        <button
-                          type="button"
-                          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200"
-                          aria-label="Drag condition"
-                        >
-                          <GripVertical size={16} />
+                          <Plus size={16} />
+                          Add condition to group
                         </button>
                       </div>
                     );
@@ -1003,11 +1141,9 @@ export function Table<T>({
                   <button
                     type="button"
                     onClick={() =>
-                      setFilterConditions((items) => [
+                      setFilterItems((items) => [
                         ...items,
-                        createFilterCondition(
-                          selectableColumns[0]?.value ?? "",
-                        ),
+                        createFilterItem(selectableColumns[0]?.value ?? ""),
                       ])
                     }
                     className="inline-flex items-center cursor-pointer gap-2 font-medium text-slate-600 hover:text-sky-700 dark:text-slate-300 dark:hover:text-sky-300"
@@ -1019,11 +1155,9 @@ export function Table<T>({
                   <button
                     type="button"
                     onClick={() =>
-                      setFilterConditions((items) => [
+                      setFilterItems((items) => [
                         ...items,
-                        createFilterCondition(
-                          selectableColumns[0]?.value ?? "",
-                        ),
+                        createFilterGroup(selectableColumns[0]?.value ?? ""),
                       ])
                     }
                     className="font-medium text-slate-500 cursor-pointer hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
@@ -1035,7 +1169,8 @@ export function Table<T>({
                     type="button"
                     onClick={() => {
                       setFilterSearch("");
-                      setFilterConditions([]);
+                      setRootFilterGate("AND");
+                      setFilterItems([]);
                     }}
                     className="font-medium text-slate-500 cursor-pointer hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-300"
                   >

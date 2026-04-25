@@ -25,6 +25,7 @@ type Props = {
   optionsClassName?: string;
   labelClassName?: string;
   disabled?: boolean;
+  floatingOptions?: boolean;
 };
 
 export function Select({
@@ -38,6 +39,7 @@ export function Select({
   optionsClassName,
   labelClassName,
   disabled,
+  floatingOptions = false,
 }: Props) {
   const id = useId();
   const selected = options.find((o) => String(o.value) === String(value));
@@ -75,8 +77,11 @@ export function Select({
           </ListboxButton>
 
           <ListboxOptions
+            anchor={floatingOptions ? "bottom start" : undefined}
             className={clsx(
-              "absolute left-0 top-full z-[260] mt-1 max-h-64 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-gray-800",
+              floatingOptions
+                ? "z-[300] max-h-64 w-[var(--button-width)] overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg [--anchor-gap:0.25rem] dark:border-slate-700 dark:bg-gray-800"
+                : "absolute left-0 top-full z-[260] mt-1 max-h-64 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-gray-800",
               optionsClassName,
             )}
           >
