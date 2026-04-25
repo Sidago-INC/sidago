@@ -8,9 +8,15 @@ export type Props = {
   item: NavigationItem;
   isCollapsed: boolean;
   isActive: boolean;
+  allowLabelWrap?: boolean;
 };
 
-export const SidebarItem = ({ item, isCollapsed, isActive }: Props) => {
+export const SidebarItem = ({
+  item,
+  isCollapsed,
+  isActive,
+  allowLabelWrap = false,
+}: Props) => {
   const Icon = item.icon;
 
   return (
@@ -38,7 +44,11 @@ export const SidebarItem = ({ item, isCollapsed, isActive }: Props) => {
           <motion.span
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            className="min-w-0 truncate font-semibold text-[0.875rem] tracking-wide"
+            className={`min-w-0 font-semibold text-[0.875rem] tracking-wide ${
+              allowLabelWrap
+                ? "whitespace-normal break-words leading-snug"
+                : "truncate"
+            }`}
           >
             {item.label}
           </motion.span>

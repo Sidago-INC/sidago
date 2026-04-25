@@ -37,7 +37,7 @@ export default function Mobilebar({
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 left-0 z-70 flex w-[80%] max-w-sm flex-col bg-white p-6 transition-colors dark:bg-slate-950 md:hidden"
+            className="fixed inset-0 z-70 flex w-screen flex-col bg-white p-6 transition-colors dark:bg-slate-950 md:hidden"
           >
             <div className="mb-6 flex items-center justify-between">
               <div className="flex items-center gap-2 text-xl font-bold text-indigo-600 dark:text-indigo-300">
@@ -54,13 +54,14 @@ export default function Mobilebar({
                 <X size={18} />
               </button>
             </div>
-            <nav className="flex-1 overflow-y-auto overflow-x-hidden">
+            <nav className="flex-1 space-y-1 overflow-y-auto overflow-x-hidden">
               {navigations.map((item) => (
                 <SidebarItem
                   key={item.href}
                   item={item}
                   isCollapsed={false}
                   isActive={pathname === item.href}
+                  allowLabelWrap
                 />
               ))}
             </nav>
