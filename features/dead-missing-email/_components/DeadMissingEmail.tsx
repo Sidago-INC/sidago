@@ -69,7 +69,7 @@ export function DeadMissingEmail() {
           row.email ? (
             <EmailLink value={row.email} />
           ) : (
-            <span className="text-slate-400">Missing</span>
+            <span className="text-slate-400"></span>
           ),
       },
       { title: "Additional Contact Emails", key: "additionalContactEmails" },

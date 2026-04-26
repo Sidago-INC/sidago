@@ -564,8 +564,8 @@ function EditableField({
             }}
             className={`w-full cursor-text rounded border border-gray-300 bg-white text-xs font-semibold text-slate-600 transition focus:border-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-slate-200 ${
               align === "stack"
-                ? "min-h-[98px] px-3 py-2 text-left whitespace-pre-line"
-                : "min-h-[30px] px-3 py-1.5 text-left truncate"
+                ? "min-h-24.5 px-3 py-2 text-left whitespace-pre-line"
+                : "min-h-7.5 px-3 py-1.5 text-left truncate"
             }`}
           >
             {preview}
