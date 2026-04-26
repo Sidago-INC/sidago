@@ -258,8 +258,8 @@ export function generateRandomLeads(count: number): LEAD[] {
     const fullName = `${firstName} ${lastName}`;
     const company =
       i === 0 ? { ...COMPANY_VALUES[9] } : getRandomCompany();
-    const leadType = i === 0 ? "Can't Locate" : getRandomLeadType();
-    const leadId = `LD-20260426-${i}`;
+    const leadType = getRandomLeadType();
+    const leadId = `${company.symbol}-${company.name.slice(0, 3).toUpperCase()}-${String(i + 1).padStart(4, "0")}`;
     const agentName = getRandomItem(AGENT_NAMES);
 
     const lead: LEAD = {

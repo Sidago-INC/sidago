@@ -150,8 +150,7 @@ export function AgentEmailDrawer({
       size="min(680px, 100vw)"
       header={
         <DrawerActionHeader
-          title="Edit Email Queue"
-          subtitle={row?.leadId ?? "Email entry"}
+          title={row?.leadId ?? "Email entry"}
           copied={copied}
           canGoPrevious={currentIndex > 0}
           canGoNext={currentIndex >= 0 && currentIndex < rowCount - 1}

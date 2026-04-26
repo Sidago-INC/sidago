@@ -136,8 +136,7 @@ export function AgentSmsDrawer({
       size="min(560px, 100vw)"
       header={
         <DrawerActionHeader
-          title="SMS Activity Detail"
-          subtitle={row?.leadId ?? "SMS activity"}
+          title={row?.leadId ?? "SMS activity"}
           copied={copied}
           canGoPrevious={currentIndex > 0}
           canGoNext={currentIndex >= 0 && currentIndex < rowCount - 1}

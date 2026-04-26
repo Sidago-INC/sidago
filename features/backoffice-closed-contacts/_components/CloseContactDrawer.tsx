@@ -306,9 +306,6 @@ export function ClosedContactDrawer({
               <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 {row.lead}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Row {currentIndex + 1} of {data.length}
-              </p>
             </div>
           </div>
 
