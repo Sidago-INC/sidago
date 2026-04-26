@@ -15,6 +15,7 @@ import {
 import type { Column } from "@/components/ui/Table";
 import type { ClosedContactRow } from "../_lib/data";
 import {
+  type ClosedContactsTabKey,
   contactTypeOptions,
   getCompanySymbol,
   getLeadId,
@@ -43,6 +44,7 @@ import { showSuccessToast } from "@/lib/toast";
 type ClosedContactDrawerProps = {
   data: ClosedContactRow[];
   columns?: Column<ClosedContactRow>[];
+  tabKey: ClosedContactsTabKey;
   selectedIndex: number | null;
   onSelectedIndexChange: (index: number) => void;
   onClose: () => void;
@@ -143,6 +145,7 @@ function escapeHtml(value: string) {
 export function ClosedContactDrawer({
   data,
   columns,
+  tabKey,
   selectedIndex,
   onSelectedIndexChange,
   onClose,
@@ -188,9 +191,10 @@ export function ClosedContactDrawer({
     if (!row || typeof window === "undefined") return "";
 
     const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tabKey);
     params.set("lead", getLeadId(row));
     return `${window.location.origin}${pathname}?${params.toString()}`;
-  }, [pathname, row, searchParams]);
+  }, [pathname, row, searchParams, tabKey]);
 
   useEffect(() => {
     if (!copied) return;

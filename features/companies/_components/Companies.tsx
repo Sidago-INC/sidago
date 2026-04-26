@@ -9,6 +9,7 @@ import { COUNTRY_OPTIONS } from "@/types/country.types";
 import { COMPANY, COMPANY_VALUES } from "@/types/company.types";
 import { TIMEZONE_OPTIONS } from "@/types/timezone.types";
 import { Plus } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { CompanyDrawer } from "./CompanyDrawer";
 
@@ -59,14 +60,33 @@ function normalizeCompany(company: COMPANY): COMPANY {
 }
 
 export function Companies() {
+  const searchParams = useSearchParams();
   const [companies, setCompanies] = useState<COMPANY[]>(COMPANY_VALUES);
-  const [drawerState, setDrawerState] = useState<DrawerState>({
-    isOpen: false,
-    mode: "create",
-    originalSymbol: null,
-    initialCompany: blankCompany,
-    draft: blankCompany,
-    errors: {},
+  const [drawerState, setDrawerState] = useState<DrawerState>(() => {
+    const companyParam = searchParams.get("company");
+    const company = COMPANY_VALUES.find(
+      (item) => item.symbol.toLowerCase() === companyParam?.toLowerCase(),
+    );
+
+    if (company) {
+      return {
+        isOpen: true,
+        mode: "edit",
+        originalSymbol: company.symbol,
+        initialCompany: { ...company },
+        draft: { ...company },
+        errors: {},
+      };
+    }
+
+    return {
+      isOpen: false,
+      mode: "create",
+      originalSymbol: null,
+      initialCompany: blankCompany,
+      draft: blankCompany,
+      errors: {},
+    };
   });
 
   const columns = useMemo<Column<COMPANY>[]>(
@@ -151,6 +171,12 @@ export function Companies() {
       draft: nextCompany,
       errors: {},
     });
+  };
+
+  const openEditDrawerAtIndex = (index: number) => {
+    const company = companies[index];
+    if (!company) return;
+    openEditDrawer(company);
   };
 
   const closeDrawer = () => {
@@ -247,9 +273,14 @@ export function Companies() {
         initialCompany={drawerState.initialCompany}
         isOpen={drawerState.isOpen}
         mode={drawerState.mode}
+        currentIndex={companies.findIndex(
+          (company) => company.symbol === drawerState.originalSymbol,
+        )}
+        rowCount={companies.length}
         errors={drawerState.errors}
         onCancel={closeDrawer}
         onChange={updateDraft}
+        onNavigate={openEditDrawerAtIndex}
         onReset={resetDraft}
         onSave={saveCompany}
       />

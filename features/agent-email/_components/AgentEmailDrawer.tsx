@@ -2,23 +2,37 @@
 
 import {
   Drawer,
+  DrawerActionHeader,
+  EditableDrawerFooter,
   Select,
   Textarea,
   TextInput,
 } from "@/components/ui";
 import { Check } from "lucide-react";
+import { useEffect, useState } from "react";
 import { emailPriorityOptions, AgentEmailRow } from "../_lib/data";
 
 type AgentEmailDrawerProps = {
   row: AgentEmailRow | null;
+  currentIndex: number;
+  rowCount: number;
   onCancel: () => void;
   onChange: (field: keyof AgentEmailRow, value: string | boolean) => void;
+  onNavigate: (index: number) => void;
   onReset: () => void;
   onSave: () => void;
 };
 
 const inputClassName =
   "h-10 rounded border bg-white px-3 py-2 text-sm text-slate-700 transition focus:border-indigo-500 focus:outline-none dark:bg-gray-800 dark:text-slate-200 dark:focus:border-indigo-400";
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
 
 function ToggleField({
   checked,
@@ -53,11 +67,81 @@ function ToggleField({
 
 export function AgentEmailDrawer({
   row,
+  currentIndex,
+  rowCount,
   onCancel,
   onChange,
+  onNavigate,
   onReset,
   onSave,
 }: AgentEmailDrawerProps) {
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timer = window.setTimeout(() => setCopied(false), 1800);
+    return () => window.clearTimeout(timer);
+  }, [copied]);
+
+  const handleCopyLink = async () => {
+    if (!row || typeof window === "undefined") return;
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("lead", row.leadId);
+    await navigator.clipboard.writeText(url.toString());
+    setCopied(true);
+  };
+
+  const handlePrint = () => {
+    if (!row || typeof window === "undefined") return;
+
+    const printWindow = window.open("", "_blank", "width=900,height=700");
+    if (!printWindow) return;
+
+    const rows = [
+      ["Lead ID", row.leadId],
+      ["Full Name", row.fullName],
+      ["Email", row.email],
+      ["Email To Be Sent", row.emailToBeSent],
+      ["History", row.history],
+      ["Check To Log", row.checkToLog ? "Yes" : "No"],
+      ["Missing/Dead Email", row.missingDeadEmail ? "Yes" : "No"],
+    ]
+      .map(
+        ([label, value]) => `
+          <tr>
+            <td style="width:38%;border:1px solid #cbd5e1;padding:10px;font-weight:600;background:#f8fafc;">
+              ${escapeHtml(String(label))}
+            </td>
+            <td style="border:1px solid #cbd5e1;padding:10px;">
+              ${escapeHtml(String(value || "-"))}
+            </td>
+          </tr>
+        `,
+      )
+      .join("");
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>${escapeHtml(row.leadId)} | Email Queue</title>
+        </head>
+        <body style="font-family:Arial,sans-serif;padding:24px;color:#0f172a;">
+          <h1>Email Queue</h1>
+          <p style="margin-bottom:20px;color:#475569;">
+            ${escapeHtml(row.leadId)} | ${escapeHtml(row.email)}
+          </p>
+          <table style="width:100%;border-collapse:collapse;">
+            ${rows}
+          </table>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  };
+
   return (
     <Drawer
       isOpen={Boolean(row)}
@@ -65,39 +149,24 @@ export function AgentEmailDrawer({
       direction="right"
       size="min(680px, 100vw)"
       header={
-        <div className="min-w-0">
-          <h2 className="truncate text-base font-semibold text-slate-900 dark:text-slate-100">
-            Edit Email Queue
-          </h2>
-          <p className="truncate text-sm text-slate-500 dark:text-slate-400">
-            {row?.leadId ?? "Email entry"}
-          </p>
-        </div>
+        <DrawerActionHeader
+          title="Edit Email Queue"
+          subtitle={row?.leadId ?? "Email entry"}
+          copied={copied}
+          canGoPrevious={currentIndex > 0}
+          canGoNext={currentIndex >= 0 && currentIndex < rowCount - 1}
+          onPrevious={() => onNavigate(currentIndex - 1)}
+          onNext={() => onNavigate(currentIndex + 1)}
+          onPrint={handlePrint}
+          onCopyLink={handleCopyLink}
+        />
       }
       footer={
-        <div className="flex flex-col gap-2 bg-white px-5 py-4 dark:bg-gray-900 sm:flex-row sm:items-center sm:justify-end">
-          <button
-            type="button"
-            onClick={onReset}
-            className="cursor-pointer rounded border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-800"
-          >
-            Reset
-          </button>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="cursor-pointer rounded border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-800"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={onSave}
-            className="cursor-pointer rounded bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
-          >
-            Save
-          </button>
-        </div>
+        <EditableDrawerFooter
+          onCancel={onCancel}
+          onReset={onReset}
+          onSave={onSave}
+        />
       }
     >
       {row && (

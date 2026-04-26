@@ -3,6 +3,7 @@
 import { CompanySymbolBadge, Table } from "@/components/ui";
 import { Column } from "@/components/ui/Table";
 import { showSuccessToast } from "@/lib/toast";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AgentSmsDrawer } from "./AgentSmsDrawer";
 import { AgentSmsRow, getSmsRowsForAgent } from "../_lib/data";
@@ -35,15 +36,28 @@ function SmsStatusBadge({ status }: { status: string }) {
 }
 
 export function AgentSms({ agentName, agentSlug }: AgentSmsProps) {
+  const searchParams = useSearchParams();
   const [rows, setRows] = useState<AgentSmsRow[]>(() =>
     getSmsRowsForAgent(agentSlug),
   );
   const [drawerState, setDrawerState] = useState<{
     original: AgentSmsRow | null;
     draft: AgentSmsRow | null;
-  }>({
-    original: null,
-    draft: null,
+  }>(() => {
+    const leadParam = searchParams.get("lead");
+    const row = getSmsRowsForAgent(agentSlug).find(
+      (item) =>
+        item.leadId === leadParam ||
+        item.email === leadParam ||
+        item.id === leadParam,
+    );
+
+    return row
+      ? { original: { ...row }, draft: { ...row } }
+      : {
+          original: null,
+          draft: null,
+        };
   });
   const smsLogTitle = rows[0]?.brand
     ? `SMS Log (${rows[0].brand})`
@@ -73,6 +87,16 @@ export function AgentSms({ agentName, agentSlug }: AgentSmsProps) {
     [rows, smsLogTitle],
   );
 
+  const openDrawer = (row: AgentSmsRow) => {
+    setDrawerState({ original: { ...row }, draft: { ...row } });
+  };
+
+  const openDrawerAtIndex = (index: number) => {
+    const row = rows[index];
+    if (!row) return;
+    openDrawer(row);
+  };
+
   return (
     <div className="min-h-full">
       <Table
@@ -81,12 +105,12 @@ export function AgentSms({ agentName, agentSlug }: AgentSmsProps) {
         title={`SMS - ${agentName}`}
         description="SMS activity and logs tied to assigned leads"
         emptyText="No SMS activity found for this agent."
-        onRowClick={(row) =>
-          setDrawerState({ original: { ...row }, draft: { ...row } })
-        }
+        onRowClick={openDrawer}
       />
       <AgentSmsDrawer
         row={drawerState.draft}
+        currentIndex={rows.findIndex((row) => row.id === drawerState.draft?.id)}
+        rowCount={rows.length}
         onCancel={() => setDrawerState({ original: null, draft: null })}
         onChange={(field, value) =>
           setDrawerState((current) =>
@@ -98,6 +122,7 @@ export function AgentSms({ agentName, agentSlug }: AgentSmsProps) {
               : current,
           )
         }
+        onNavigate={openDrawerAtIndex}
         onReset={() =>
           setDrawerState((current) => ({
             ...current,

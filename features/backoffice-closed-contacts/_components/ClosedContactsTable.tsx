@@ -16,11 +16,8 @@ import {
   type ClosedContactsTabKey,
 } from "../_lib/data";
 import { ClosedContactDrawer } from "./CloseContactDrawer";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import {
-  findDrawerRouteIndex,
-  getDrawerRouteLead,
-} from "@/features/backoffice-shared/drawer-route";
+import { useSearchParams } from "next/navigation";
+import { findDrawerRouteIndex } from "@/features/backoffice-shared/drawer-route";
 
 type ClosedContactsTableProps = {
   data: ClosedContactRow[];
@@ -33,29 +30,16 @@ export function ClosedContactsTable({
   tabKey,
   title,
 }: ClosedContactsTableProps) {
-  const pathname = usePathname();
-  const router = useRouter();
   const searchParams = useSearchParams();
+  const selectedLead = searchParams.get("lead");
 
-  const selectedIndex = useMemo(() => {
-    const selectedLead = searchParams.get("lead");
-    if (!selectedLead) return null;
-    return findDrawerRouteIndex(data, selectedLead);
-  }, [data, searchParams]);
+  const [selectedIndex, setSelectedIndex] = React.useState<number | null>(() =>
+    findDrawerRouteIndex(data, selectedLead),
+  );
 
-  const updateRouteForIndex = (index: number | null) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (index === null) {
-      params.delete("lead");
-    } else {
-      params.set("tab", tabKey);
-      params.set("lead", getDrawerRouteLead(data[index]));
-    }
-    const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, {
-      scroll: false,
-    });
-  };
+  React.useEffect(() => {
+    setSelectedIndex(findDrawerRouteIndex(data, selectedLead));
+  }, [data, selectedLead]);
 
   const columns = useMemo<Column<ClosedContactRow>[]>(
     () => [
@@ -147,15 +131,16 @@ export function ClosedContactsTable({
         title={title}
         onRowClick={(row) => {
           const index = data.findIndex((item) => item.email === row.email);
-          updateRouteForIndex(index >= 0 ? index : null);
+          setSelectedIndex(index >= 0 ? index : null);
         }}
       />
       <ClosedContactDrawer
         data={data}
         columns={columns}
+        tabKey={tabKey}
         selectedIndex={selectedIndex}
-        onSelectedIndexChange={updateRouteForIndex}
-        onClose={() => updateRouteForIndex(null)}
+        onSelectedIndexChange={setSelectedIndex}
+        onClose={() => setSelectedIndex(null)}
       />
     </div>
   );

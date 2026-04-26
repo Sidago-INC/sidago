@@ -8,6 +8,7 @@ import {
 } from "@/components/ui";
 import { Column } from "@/components/ui/Table";
 import { showSuccessToast } from "@/lib/toast";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AgentEmailDrawer } from "./AgentEmailDrawer";
 import { AgentEmailRow, getEmailRowsForAgent } from "../_lib/data";
@@ -23,12 +24,22 @@ type DrawerState = {
 };
 
 export function AgentEmail({ agentName, agentSlug }: AgentEmailProps) {
+  const searchParams = useSearchParams();
   const [rows, setRows] = useState<AgentEmailRow[]>(() =>
     getEmailRowsForAgent(agentSlug),
   );
-  const [drawerState, setDrawerState] = useState<DrawerState>({
-    original: null,
-    draft: null,
+  const [drawerState, setDrawerState] = useState<DrawerState>(() => {
+    const leadParam = searchParams.get("lead");
+    const row = getEmailRowsForAgent(agentSlug).find(
+      (item) => item.leadId === leadParam || item.email === leadParam,
+    );
+
+    return row
+      ? { original: { ...row }, draft: { ...row } }
+      : {
+          original: null,
+          draft: null,
+        };
   });
 
   const columns = useMemo<Column<AgentEmailRow>[]>(
@@ -66,6 +77,12 @@ export function AgentEmail({ agentName, agentSlug }: AgentEmailProps) {
       original: { ...row },
       draft: { ...row },
     });
+  };
+
+  const openDrawerAtIndex = (index: number) => {
+    const row = rows[index];
+    if (!row) return;
+    openDrawer(row);
   };
 
   const closeDrawer = () => {
@@ -128,8 +145,11 @@ export function AgentEmail({ agentName, agentSlug }: AgentEmailProps) {
 
       <AgentEmailDrawer
         row={drawerState.draft}
+        currentIndex={rows.findIndex((row) => row.id === drawerState.draft?.id)}
+        rowCount={rows.length}
         onCancel={closeDrawer}
         onChange={updateDraft}
+        onNavigate={openDrawerAtIndex}
         onReset={resetDraft}
         onSave={saveDraft}
       />

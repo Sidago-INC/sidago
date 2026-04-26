@@ -12,6 +12,7 @@ export { CheckboxInput } from "./CheckboxInput";
 export { DateInput } from "./DateInput";
 export { Drawer } from "./Drawer";
 export type { DrawerProps, DrawerDirection } from "./Drawer";
+export { DrawerActionHeader } from "./DrawerActionHeader";
 export { DropdownPanel } from "./DropdownPanel";
 export { EditableDrawerFooter } from "./EditableDrawerFooter";
 export { EditableField } from "./EditableField";

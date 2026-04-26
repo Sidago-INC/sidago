@@ -2,12 +2,9 @@
 
 import { CompanySymbolBadge, TimezoneBadge, TypeBadge } from "@/components/ui";
 import { Table, type Column } from "@/components/ui/Table";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import {
-  findDrawerRouteIndex,
-  getDrawerRouteLead,
-} from "@/features/backoffice-shared/drawer-route";
-import React, { useMemo } from "react";
+import { useSearchParams } from "next/navigation";
+import { findDrawerRouteIndex } from "@/features/backoffice-shared/drawer-route";
+import React, { useEffect, useMemo, useState } from "react";
 import { EverBeenHotDrawer } from "./EverBeenHotDrawer";
 
 import {
@@ -33,34 +30,16 @@ export function EverBeenHotTable({
   title,
   variant,
 }: EverBeenHotTableProps) {
-  const pathname = usePathname();
-  const router = useRouter();
   const searchParams = useSearchParams();
+  const selectedLead = searchParams.get("lead");
 
-  const selectedIndex = useMemo(() => {
-    const selectedLead = searchParams.get("lead");
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(() =>
+    findDrawerRouteIndex(data, selectedLead),
+  );
 
-    if (!selectedLead) {
-      return null;
-    }
-
-    return findDrawerRouteIndex(data, selectedLead);
-  }, [data, searchParams]);
-
-  const updateRouteForIndex = (index: number | null) => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (index === null) {
-      params.delete("lead");
-    } else {
-      params.set("lead", getDrawerRouteLead(data[index]));
-    }
-
-    const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, {
-      scroll: false,
-    });
-  };
+  useEffect(() => {
+    setSelectedIndex(findDrawerRouteIndex(data, selectedLead));
+  }, [data, selectedLead]);
 
   const columns = useMemo<Column<EverBeenHotRow>[]>(() => {
     const baseColumns: Column<EverBeenHotRow>[] = [
@@ -257,15 +236,15 @@ export function EverBeenHotTable({
         title={title}
         onRowClick={(row) => {
           const index = data.findIndex((item) => item.email === row.email);
-          updateRouteForIndex(index >= 0 ? index : null);
+          setSelectedIndex(index >= 0 ? index : null);
         }}
       />
       <EverBeenHotDrawer
         data={data}
         columns={columns}
         selectedIndex={selectedIndex}
-        onSelectedIndexChange={updateRouteForIndex}
-        onClose={() => updateRouteForIndex(null)}
+        onSelectedIndexChange={setSelectedIndex}
+        onClose={() => setSelectedIndex(null)}
       />
     </div>
   );

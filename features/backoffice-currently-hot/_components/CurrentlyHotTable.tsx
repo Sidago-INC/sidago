@@ -2,7 +2,7 @@
 
 import { CompanySymbolBadge, TimezoneBadge, TypeBadge } from "@/components/ui";
 import { Table, type Column } from "@/components/ui/Table";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { CurrentlyHotDrawer } from "./CurrentlyHotDrawer";
 import {
   assigneeOptions,
@@ -15,11 +15,8 @@ import {
   leadTypeOptions,
   timezoneOptions,
 } from "../_lib/data";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import {
-  findDrawerRouteIndex,
-  getDrawerRouteLead,
-} from "@/features/backoffice-shared/drawer-route";
+import { useSearchParams } from "next/navigation";
+import { findDrawerRouteIndex } from "@/features/backoffice-shared/drawer-route";
 
 type CurrentlyHotTableProps = {
   data: LeadRow[];
@@ -32,34 +29,16 @@ export function CurrentlyHotTable({
   title,
   variant,
 }: CurrentlyHotTableProps) {
-  const pathname = usePathname();
-  const router = useRouter();
   const searchParams = useSearchParams();
+  const selectedLead = searchParams.get("lead");
 
-  const selectedIndex = useMemo(() => {
-    const selectedLead = searchParams.get("lead");
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(() =>
+    findDrawerRouteIndex(data, selectedLead),
+  );
 
-    if (!selectedLead) {
-      return null;
-    }
-
-    return findDrawerRouteIndex(data, selectedLead);
-  }, [data, searchParams]);
-
-  const updateRouteForIndex = (index: number | null) => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (index === null) {
-      params.delete("lead");
-    } else {
-      params.set("lead", getDrawerRouteLead(data[index]));
-    }
-
-    const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, {
-      scroll: false,
-    });
-  };
+  useEffect(() => {
+    setSelectedIndex(findDrawerRouteIndex(data, selectedLead));
+  }, [data, selectedLead]);
 
   const columns = useMemo<Column<LeadRow>[]>(() => {
     const baseColumns: Column<LeadRow>[] = [
@@ -254,15 +233,15 @@ export function CurrentlyHotTable({
         title={title}
         onRowClick={(row) => {
           const index = data.findIndex((item) => item.email === row.email);
-          updateRouteForIndex(index >= 0 ? index : null);
+          setSelectedIndex(index >= 0 ? index : null);
         }}
       />
       <CurrentlyHotDrawer
         data={data}
         columns={columns}
         selectedIndex={selectedIndex}
-        onSelectedIndexChange={updateRouteForIndex}
-        onClose={() => updateRouteForIndex(null)}
+        onSelectedIndexChange={setSelectedIndex}
+        onClose={() => setSelectedIndex(null)}
       />
     </div>
   );

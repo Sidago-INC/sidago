@@ -3,18 +3,23 @@
 import {
   CompanySymbolBadge,
   Drawer,
+  DrawerActionHeader,
   EditableDrawerFooter,
   EditableField,
   Select,
   Textarea,
   TextInput,
 } from "@/components/ui";
+import { useEffect, useState } from "react";
 import { AgentSmsRow } from "../_lib/data";
 
 type AgentSmsDrawerProps = {
   row: AgentSmsRow | null;
+  currentIndex: number;
+  rowCount: number;
   onCancel: () => void;
   onChange: (field: keyof AgentSmsRow, value: string) => void;
+  onNavigate: (index: number) => void;
   onReset: () => void;
   onSave: () => void;
 };
@@ -22,6 +27,14 @@ type AgentSmsDrawerProps = {
 const smsStatusOptions = ["Queued", "Sent", "Delivered", "Replied", "Failed"].map(
   (value) => ({ label: value, value }),
 );
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -38,11 +51,83 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
 
 export function AgentSmsDrawer({
   row,
+  currentIndex,
+  rowCount,
   onCancel,
   onChange,
+  onNavigate,
   onReset,
   onSave,
 }: AgentSmsDrawerProps) {
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timer = window.setTimeout(() => setCopied(false), 1800);
+    return () => window.clearTimeout(timer);
+  }, [copied]);
+
+  const handleCopyLink = async () => {
+    if (!row || typeof window === "undefined") return;
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("lead", row.leadId);
+    await navigator.clipboard.writeText(url.toString());
+    setCopied(true);
+  };
+
+  const handlePrint = () => {
+    if (!row || typeof window === "undefined") return;
+
+    const printWindow = window.open("", "_blank", "width=900,height=700");
+    if (!printWindow) return;
+
+    const rows = [
+      ["Lead ID", row.leadId],
+      ["Company Symbol", row.companySymbol],
+      ["Company Name", row.companyName],
+      ["Full Name", row.fullName],
+      ["Phone", row.phone],
+      ["Email", row.email],
+      ["Brand", row.brand],
+      ["SMS Status", row.smsStatus],
+      [`${row.brand} SMS Log`, row.smsLog],
+    ]
+      .map(
+        ([label, value]) => `
+          <tr>
+            <td style="width:38%;border:1px solid #cbd5e1;padding:10px;font-weight:600;background:#f8fafc;">
+              ${escapeHtml(String(label))}
+            </td>
+            <td style="border:1px solid #cbd5e1;padding:10px;">
+              ${escapeHtml(String(value || "-"))}
+            </td>
+          </tr>
+        `,
+      )
+      .join("");
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>${escapeHtml(row.leadId)} | SMS Activity</title>
+        </head>
+        <body style="font-family:Arial,sans-serif;padding:24px;color:#0f172a;">
+          <h1>SMS Activity</h1>
+          <p style="margin-bottom:20px;color:#475569;">
+            ${escapeHtml(row.leadId)} | ${escapeHtml(row.fullName)}
+          </p>
+          <table style="width:100%;border-collapse:collapse;">
+            ${rows}
+          </table>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  };
+
   return (
     <Drawer
       isOpen={Boolean(row)}
@@ -50,14 +135,17 @@ export function AgentSmsDrawer({
       direction="right"
       size="min(560px, 100vw)"
       header={
-        <div className="min-w-0">
-          <h2 className="truncate text-base font-semibold text-slate-900 dark:text-slate-100">
-            SMS Activity Detail
-          </h2>
-          <p className="truncate text-sm text-slate-500 dark:text-slate-400">
-            {row?.leadId ?? "SMS activity"}
-          </p>
-        </div>
+        <DrawerActionHeader
+          title="SMS Activity Detail"
+          subtitle={row?.leadId ?? "SMS activity"}
+          copied={copied}
+          canGoPrevious={currentIndex > 0}
+          canGoNext={currentIndex >= 0 && currentIndex < rowCount - 1}
+          onPrevious={() => onNavigate(currentIndex - 1)}
+          onNext={() => onNavigate(currentIndex + 1)}
+          onPrint={handlePrint}
+          onCopyLink={handleCopyLink}
+        />
       }
       footer={
         <EditableDrawerFooter
