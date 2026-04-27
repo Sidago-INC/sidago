@@ -48,7 +48,7 @@ function mapLeadToDeadMissingEmailRow(
     id: String(lead.id ?? lead.record_id ?? index),
     leadId: lead.lead_id || getLeadId({ companyName, lead: lead.lead ?? "" }),
     email: isMissing ? "" : (lead.email ?? ""),
-    additionalContactEmails: createAdditionalContactEmails(lead, index),
+    additionalContactEmails: "",
     leadType: lead.lead_type ?? "",
     bentonLeadType: lead.lead_type_benton ?? "",
     rm95LeadType: lead.lead_type_95rm ?? "",

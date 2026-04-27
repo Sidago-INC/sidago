@@ -74,6 +74,7 @@ export type LEAD = {
   to_be_logged?: boolean; // functional field
   next_follow_up_date_sidago?: string;
   call_notes_sidago?: string;
+  history_call_notes_sidago?: string;
   history_calls_sidago?: string;
   date_become_hot?: string;
   days_hot?: number; // functional field
