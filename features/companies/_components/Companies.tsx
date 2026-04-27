@@ -2,15 +2,15 @@
 
 import { CompanySymbolBadge, Table, TimezoneBadge } from "@/components/ui";
 import { Column } from "@/components/ui/Table";
-import { showSuccessToast } from "@/lib/toast";
+import { showErrorToast, showInfoToast, showSuccessToast } from "@/lib/toast";
 import { companyValidationSchema } from "@/lib/validation/company";
 import { validateForm } from "@/lib/validation";
 import { COUNTRY_OPTIONS } from "@/types/country.types";
 import { COMPANY, COMPANY_VALUES } from "@/types/company.types";
 import { TIMEZONE_OPTIONS } from "@/types/timezone.types";
-import { Plus } from "lucide-react";
+import { Download, Plus, Upload } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { CompanyDrawer } from "./CompanyDrawer";
 
 const blankCompany: COMPANY = {
@@ -61,6 +61,7 @@ function normalizeCompany(company: COMPANY): COMPANY {
 
 export function Companies() {
   const searchParams = useSearchParams();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [companies, setCompanies] = useState<COMPANY[]>(COMPANY_VALUES);
   const [drawerState, setDrawerState] = useState<DrawerState>(() => {
     const companyParam = searchParams.get("company");
@@ -247,17 +248,84 @@ export function Companies() {
     }));
   };
 
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      const csv = await file.text();
+      const parsedRows = parseCompanyCsv(csv);
+
+      if (parsedRows.length === 0) {
+        showErrorToast("CSV file is empty or missing company rows.");
+        return;
+      }
+
+      const importedCompanies = buildImportedCompanies(parsedRows, companies);
+
+      if (importedCompanies.length === 0) {
+        showInfoToast("No new valid companies were found in the CSV.");
+        return;
+      }
+
+      setCompanies((current) => [...importedCompanies, ...current]);
+      showSuccessToast(
+        `Imported ${importedCompanies.length} compan${
+          importedCompanies.length === 1 ? "y" : "ies"
+        } from CSV.`,
+      );
+    } catch (error) {
+      showErrorToast(error);
+    } finally {
+      event.target.value = "";
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-end px-4 mt-3">
-        <button
-          type="button"
-          onClick={openCreateDrawer}
-          className="inline-flex cursor-pointer items-center gap-2 rounded bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
-        >
-          <Plus size={16} />
-          Add Company
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href="/companies-import-example.csv"
+            download
+            className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            <Download size={16} />
+            Example CSV
+          </a>
+          <button
+            type="button"
+            onClick={handleImportClick}
+            className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            <Upload size={16} />
+            Import CSV
+          </button>
+          <button
+            type="button"
+            onClick={openCreateDrawer}
+            className="inline-flex cursor-pointer items-center gap-2 rounded bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
+          >
+            <Plus size={16} />
+            Add Company
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+        </div>
       </div>
 
       <Table
@@ -286,4 +354,133 @@ export function Companies() {
       />
     </div>
   );
+}
+
+type ParsedCompanyCsvRow = Record<keyof COMPANY, string>;
+
+function parseCompanyCsv(csv: string): ParsedCompanyCsvRow[] {
+  const lines = csv
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (lines.length < 2) {
+    return [];
+  }
+
+  const headers = splitCsvLine(lines[0]).map((value) => normalizeCsvValue(value));
+  const requiredFields: Array<keyof COMPANY> = [
+    "symbol",
+    "name",
+    "timezone",
+    "country",
+    "description",
+    "estimatedMarketCap",
+    "primaryVenue",
+    "city",
+    "state",
+    "website",
+    "twitterHandle",
+    "zip",
+  ];
+
+  return lines.slice(1).map((line) => {
+    const values = splitCsvLine(line);
+
+    return requiredFields.reduce(
+      (row, field) => {
+        const index = headers.findIndex(
+          (header) => header.toLowerCase() === field.toLowerCase(),
+        );
+        row[field] = normalizeCsvValue(index >= 0 ? values[index] ?? "" : "");
+        return row;
+      },
+      {} as ParsedCompanyCsvRow,
+    );
+  });
+}
+
+function splitCsvLine(line: string): string[] {
+  const values: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let index = 0; index < line.length; index += 1) {
+    const char = line[index];
+    const next = line[index + 1];
+
+    if (char === '"') {
+      if (inQuotes && next === '"') {
+        current += '"';
+        index += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === "," && !inQuotes) {
+      values.push(current);
+      current = "";
+      continue;
+    }
+
+    current += char;
+  }
+
+  values.push(current);
+  return values;
+}
+
+function normalizeCsvValue(value: string) {
+  return value.trim().replace(/^"|"$/g, "");
+}
+
+function buildImportedCompanies(
+  parsedRows: ParsedCompanyCsvRow[],
+  currentCompanies: COMPANY[],
+) {
+  const existingSymbols = new Set(
+    currentCompanies.map((company) => normalizeSymbol(company.symbol)),
+  );
+  const importedSymbols = new Set<string>();
+
+  return parsedRows
+    .map((row) => normalizeCompany(companyFromCsvRow(row)))
+    .filter((company) => {
+      const errors = validateForm(company, companyValidationSchema);
+      const normalizedSymbol = normalizeSymbol(company.symbol);
+
+      if (Object.keys(errors).length > 0) {
+        return false;
+      }
+
+      if (!normalizedSymbol) {
+        return false;
+      }
+
+      if (existingSymbols.has(normalizedSymbol) || importedSymbols.has(normalizedSymbol)) {
+        return false;
+      }
+
+      importedSymbols.add(normalizedSymbol);
+      return true;
+    });
+}
+
+function companyFromCsvRow(row: ParsedCompanyCsvRow): COMPANY {
+  return {
+    symbol: row.symbol,
+    name: row.name,
+    timezone: row.timezone as COMPANY["timezone"],
+    country: row.country as COMPANY["country"],
+    description: row.description,
+    estimatedMarketCap: row.estimatedMarketCap,
+    primaryVenue: row.primaryVenue,
+    city: row.city,
+    state: row.state,
+    website: row.website,
+    twitterHandle: row.twitterHandle,
+    zip: row.zip,
+  };
 }
