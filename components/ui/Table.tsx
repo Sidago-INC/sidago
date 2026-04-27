@@ -44,6 +44,7 @@ type Props<T> = {
   showSorting?: boolean;
   showSearch?: boolean;
   showExtraActions?: boolean;
+  headerContent?: React.ReactNode;
 };
 
 type SortDirection = "asc" | "desc";
@@ -905,7 +906,7 @@ function TableSearch({
 }) {
   if (isSearchOpen) {
     return (
-      <div className="relative w-72">
+      <div className="relative w-full min-w-0 sm:w-72">
         <Search
           size={15}
           className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
@@ -989,40 +990,13 @@ function ExtraActionsPopover({
   );
 }
 
-function TableToolbar({
-  activeFilterConditionCount,
-  description,
-  filterItems,
-  filterSearch,
-  groupRules,
-  isSearchOpen,
-  onCloseSearch,
-  onExportSvg,
-  onPrintData,
-  onPrintPage,
-  rootFilterGate,
-  selectableColumns,
-  setFilterItems,
-  setFilterSearch,
-  setGroupRules,
-  setIsSearchOpen,
-  setRootFilterGate,
-  setShowCounts,
-  setSortRules,
-  showExtraActions,
-  showFilters,
-  showGrouping,
-  showCounts,
-  showSearch,
-  showSorting,
-  sortRules,
-  title,
-}: {
+type TableToolbarProps = {
   activeFilterConditionCount: number;
   description?: string;
   filterItems: FilterItem[];
   filterSearch: string;
   groupRules: GroupRule[];
+  headerContent?: React.ReactNode;
   isSearchOpen: boolean;
   onCloseSearch: () => void;
   onExportSvg: () => void;
@@ -1045,10 +1019,193 @@ function TableToolbar({
   showSorting: boolean;
   sortRules: SortRule[];
   title: string;
-}) {
+};
+
+function ToolbarPrimaryControls({
+  activeFilterConditionCount,
+  filterItems,
+  groupRules,
+  headerContent,
+  rootFilterGate,
+  selectableColumns,
+  setFilterItems,
+  setFilterSearch,
+  setGroupRules,
+  setRootFilterGate,
+  setShowCounts,
+  setSortRules,
+  showFilters,
+  showGrouping,
+  showCounts,
+  showSorting,
+  sortRules,
+}: Pick<
+  TableToolbarProps,
+  | "activeFilterConditionCount"
+  | "filterItems"
+  | "groupRules"
+  | "headerContent"
+  | "rootFilterGate"
+  | "selectableColumns"
+  | "setFilterItems"
+  | "setFilterSearch"
+  | "setGroupRules"
+  | "setRootFilterGate"
+  | "setShowCounts"
+  | "setSortRules"
+  | "showFilters"
+  | "showGrouping"
+  | "showCounts"
+  | "showSorting"
+  | "sortRules"
+>) {
   return (
-    <div className="flex items-center justify-center md:justify-between mb-2 border-b border-slate-200/80 bg-white/75 px-8 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/70">
-      <div className="min-w-0 py-2 hidden md:block">
+    <>
+      {headerContent}
+      {showGrouping && (
+        <GroupPopover
+          groupRules={groupRules}
+          selectableColumns={selectableColumns}
+          setGroupRules={setGroupRules}
+          setShowCounts={setShowCounts}
+          showCounts={showCounts}
+        />
+      )}
+      {showFilters && (
+        <FilterPopover
+          activeFilterConditionCount={activeFilterConditionCount}
+          filterItems={filterItems}
+          rootFilterGate={rootFilterGate}
+          selectableColumns={selectableColumns}
+          setFilterItems={setFilterItems}
+          setFilterSearch={setFilterSearch}
+          setRootFilterGate={setRootFilterGate}
+        />
+      )}
+      {showSorting && (
+        <SortPopover
+          selectableColumns={selectableColumns}
+          setSortRules={setSortRules}
+          sortRules={sortRules}
+        />
+      )}
+    </>
+  );
+}
+
+function SmallScreenTableToolbar({
+  activeFilterConditionCount,
+  filterItems,
+  filterSearch,
+  groupRules,
+  headerContent,
+  isSearchOpen,
+  onCloseSearch,
+  onExportSvg,
+  onPrintData,
+  onPrintPage,
+  rootFilterGate,
+  selectableColumns,
+  setFilterItems,
+  setFilterSearch,
+  setGroupRules,
+  setIsSearchOpen,
+  setRootFilterGate,
+  setShowCounts,
+  setSortRules,
+  showExtraActions,
+  showFilters,
+  showGrouping,
+  showCounts,
+  showSearch,
+  showSorting,
+  sortRules,
+}: Omit<TableToolbarProps, "description" | "title">) {
+  return (
+    <div className="flex flex-col gap-2 md:hidden">
+      <div className="flex w-full min-w-0 flex-wrap items-center justify-between gap-2">
+        <ToolbarPrimaryControls
+          activeFilterConditionCount={activeFilterConditionCount}
+          filterItems={filterItems}
+          groupRules={groupRules}
+          headerContent={headerContent}
+          rootFilterGate={rootFilterGate}
+          selectableColumns={selectableColumns}
+          setFilterItems={setFilterItems}
+          setFilterSearch={setFilterSearch}
+          setGroupRules={setGroupRules}
+          setRootFilterGate={setRootFilterGate}
+          setShowCounts={setShowCounts}
+          setSortRules={setSortRules}
+          showFilters={showFilters}
+          showGrouping={showGrouping}
+          showCounts={showCounts}
+          showSorting={showSorting}
+          sortRules={sortRules}
+        />
+        {showExtraActions && (
+          <ExtraActionsPopover
+            onExportSvg={onExportSvg}
+            onPrintData={onPrintData}
+            onPrintPage={onPrintPage}
+          />
+        )}
+      </div>
+      {showSearch && (
+        <div className="flex w-full justify-end">
+          <div
+            className={clsx(
+              "min-w-0",
+              isSearchOpen ? "w-full" : "w-auto",
+            )}
+          >
+            <TableSearch
+              filterSearch={filterSearch}
+              isSearchOpen={isSearchOpen}
+              onCloseSearch={onCloseSearch}
+              setFilterSearch={setFilterSearch}
+              setIsSearchOpen={setIsSearchOpen}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LargeScreenTableToolbar({
+  activeFilterConditionCount,
+  description,
+  filterItems,
+  filterSearch,
+  groupRules,
+  headerContent,
+  isSearchOpen,
+  onCloseSearch,
+  onExportSvg,
+  onPrintData,
+  onPrintPage,
+  rootFilterGate,
+  selectableColumns,
+  setFilterItems,
+  setFilterSearch,
+  setGroupRules,
+  setIsSearchOpen,
+  setRootFilterGate,
+  setShowCounts,
+  setSortRules,
+  showExtraActions,
+  showFilters,
+  showGrouping,
+  showCounts,
+  showSearch,
+  showSorting,
+  sortRules,
+  title,
+}: TableToolbarProps) {
+  return (
+    <div className="hidden md:flex md:items-center md:justify-between">
+      <div className="min-w-0 py-2">
         <h3 className="truncate text-base font-semibold text-slate-900 dark:text-slate-100">
           {title}
         </h3>
@@ -1056,42 +1213,40 @@ function TableToolbar({
           {description}
         </p>
       </div>
-      <div className="flex items-center justify-end gap-2">
-        {showGrouping && (
-          <GroupPopover
-            groupRules={groupRules}
-            selectableColumns={selectableColumns}
-            setGroupRules={setGroupRules}
-            setShowCounts={setShowCounts}
-            showCounts={showCounts}
-          />
-        )}
-        {showFilters && (
-          <FilterPopover
+      <div className="flex w-auto min-w-0 flex-row items-center gap-2">
+        <div className="flex min-w-0 items-center justify-end gap-2">
+          <ToolbarPrimaryControls
             activeFilterConditionCount={activeFilterConditionCount}
             filterItems={filterItems}
+            groupRules={groupRules}
+            headerContent={headerContent}
             rootFilterGate={rootFilterGate}
             selectableColumns={selectableColumns}
             setFilterItems={setFilterItems}
             setFilterSearch={setFilterSearch}
+            setGroupRules={setGroupRules}
             setRootFilterGate={setRootFilterGate}
-          />
-        )}
-        {showSorting && (
-          <SortPopover
-            selectableColumns={selectableColumns}
+            setShowCounts={setShowCounts}
             setSortRules={setSortRules}
+            showFilters={showFilters}
+            showGrouping={showGrouping}
+            showCounts={showCounts}
+            showSorting={showSorting}
             sortRules={sortRules}
           />
-        )}
+        </div>
         {showSearch && (
-          <TableSearch
-            filterSearch={filterSearch}
-            isSearchOpen={isSearchOpen}
-            onCloseSearch={onCloseSearch}
-            setFilterSearch={setFilterSearch}
-            setIsSearchOpen={setIsSearchOpen}
-          />
+          <div className="flex justify-end">
+            <div className="min-w-0 md:w-auto">
+              <TableSearch
+                filterSearch={filterSearch}
+                isSearchOpen={isSearchOpen}
+                onCloseSearch={onCloseSearch}
+                setFilterSearch={setFilterSearch}
+                setIsSearchOpen={setIsSearchOpen}
+              />
+            </div>
+          </div>
         )}
         {showExtraActions && (
           <ExtraActionsPopover
@@ -1101,6 +1256,42 @@ function TableToolbar({
           />
         )}
       </div>
+    </div>
+  );
+}
+
+function TableToolbar(props: TableToolbarProps) {
+  return (
+    <div className="mb-2 border-b border-slate-200/80 bg-white/75 px-4 py-2 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/70 md:px-8 md:py-0">
+      <SmallScreenTableToolbar
+        activeFilterConditionCount={props.activeFilterConditionCount}
+        filterItems={props.filterItems}
+        filterSearch={props.filterSearch}
+        groupRules={props.groupRules}
+        headerContent={props.headerContent}
+        isSearchOpen={props.isSearchOpen}
+        onCloseSearch={props.onCloseSearch}
+        onExportSvg={props.onExportSvg}
+        onPrintData={props.onPrintData}
+        onPrintPage={props.onPrintPage}
+        rootFilterGate={props.rootFilterGate}
+        selectableColumns={props.selectableColumns}
+        setFilterItems={props.setFilterItems}
+        setFilterSearch={props.setFilterSearch}
+        setGroupRules={props.setGroupRules}
+        setIsSearchOpen={props.setIsSearchOpen}
+        setRootFilterGate={props.setRootFilterGate}
+        setShowCounts={props.setShowCounts}
+        setSortRules={props.setSortRules}
+        showExtraActions={props.showExtraActions}
+        showFilters={props.showFilters}
+        showGrouping={props.showGrouping}
+        showCounts={props.showCounts}
+        showSearch={props.showSearch}
+        showSorting={props.showSorting}
+        sortRules={props.sortRules}
+      />
+      <LargeScreenTableToolbar {...props} />
     </div>
   );
 }
@@ -1120,6 +1311,7 @@ export function Table<T>({
   showSorting = true,
   showSearch = true,
   showExtraActions = true,
+  headerContent,
 }: Props<T>) {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const tableElementRef = useRef<HTMLTableElement | null>(null);
@@ -1630,6 +1822,7 @@ export function Table<T>({
         filterItems={filterItems}
         filterSearch={filterSearch}
         groupRules={groupRules}
+        headerContent={headerContent}
         isSearchOpen={isSearchOpen}
         onCloseSearch={closeSearch}
         onExportSvg={handleExportSvg}
