@@ -1,11 +1,11 @@
 "use client";
 
 import React from "react";
-import { UnassignedHotLeadsTable } from "./UnassignedHotLeadsTable";
+import { UnassignedHotTable } from "./UnassignedHotTable";
 
-export function UnassignedHotLeads95rm() {
+export function UnassignedHot95rm() {
   return (
-    <UnassignedHotLeadsTable
+    <UnassignedHotTable
       data={[]}
       title="Unassigned Hot Leads - 95RM"
       variant="95rm"

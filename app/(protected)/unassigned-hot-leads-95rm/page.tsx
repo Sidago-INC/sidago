@@ -1,4 +1,4 @@
-import { UnassignedHotLeads95rm } from "@/features/backoffice-unassigned-hot-leads/_components/UnassignedHotLeads95rm";
+import { UnassignedHot95rm } from "@/features/backoffice-unassigned-hot/_components/UnassignedHot95rm";
 import React from "react";
 
 export const metadata = {
@@ -12,5 +12,5 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <UnassignedHotLeads95rm />;
+  return <UnassignedHot95rm />;
 }

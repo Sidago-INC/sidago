@@ -10,7 +10,7 @@ import { Table, type Column } from "@/components/ui/Table";
 import { useSearchParams } from "next/navigation";
 import { findDrawerRouteIndex } from "@/features/backoffice-shared/drawer-route";
 import React, { useEffect, useMemo, useState } from "react";
-import { UnassignedHotLeadsDrawer } from "./UnassignedHotLeadsDrawer";
+import { UnassignedHotDrawer } from "./UnassignedHotDrawer";
 import {
   assigneeOptions,
   contactTypeOptions,
@@ -29,7 +29,7 @@ type UnassignedHotLeadsTableProps = {
   variant: "svg" | "95rm" | "benton";
 };
 
-export function UnassignedHotLeadsTable({
+export function UnassignedHotTable({
   data,
   title,
   variant,
@@ -267,7 +267,7 @@ export function UnassignedHotLeadsTable({
           />
         }
       />
-      <UnassignedHotLeadsDrawer
+      <UnassignedHotDrawer
         data={data}
         columns={columns}
         selectedIndex={selectedIndex}

@@ -2,14 +2,14 @@
 
 import React from "react";
 import { unassignedHotLeadsData } from "../_lib/data";
-import { UnassignedHotLeadsTable } from "./UnassignedHotLeadsTable";
+import { UnassignedHotLeadsTable } from "./UnassignedHotTable";
 
-export function UnassignedHotLeadsSvg() {
+export function UnassignedHotBenton() {
   return (
     <UnassignedHotLeadsTable
       data={unassignedHotLeadsData}
-      title="Unassigned Hot Leads - SVG"
-      variant="svg"
+      title="Unassigned Hot Leads - Benton"
+      variant="benton"
     />
   );
 }

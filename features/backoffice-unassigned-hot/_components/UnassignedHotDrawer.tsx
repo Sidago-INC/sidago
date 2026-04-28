@@ -130,7 +130,7 @@ function ToggleField({
   );
 }
 
-export function UnassignedHotLeadsDrawer({
+export function UnassignedHotDrawer({
   data,
   columns,
   selectedIndex,

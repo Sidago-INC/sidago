@@ -1,4 +1,4 @@
-import { UnassignedHotLeadsBenton } from "@/features/backoffice-unassigned-hot-leads/_components/UnassignedHotLeadsBenton";
+import { UnassignedHotBenton } from "@/features/backoffice-unassigned-hot/_components/UnassignedHotBenton";
 import React from "react";
 
 export const metadata = {
@@ -12,5 +12,5 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <UnassignedHotLeadsBenton />;
+  return <UnassignedHotBenton />;
 }
