@@ -192,7 +192,7 @@ export const adminOnlyNavigation: NavigationItem[] = [
     icon: Building2,
   },
   {
-    label: "Leads",
+    label: "All Leads",
     href: "/leads",
     icon: Target,
   },

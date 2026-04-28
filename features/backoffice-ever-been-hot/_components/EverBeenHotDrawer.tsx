@@ -158,7 +158,7 @@ export function EverBeenHotDrawer({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [copied, setCopied] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [editModeKey, setEditModeKey] = useState<string | null>(null);
   const [formState, setFormState] = useState<{
     key: string;
     value: EditableDrawerState;
@@ -166,6 +166,7 @@ export function EverBeenHotDrawer({
 
   const row = selectedIndex === null ? null : (data[selectedIndex] ?? null);
   const rowKey = row?.email ?? "";
+  const isEditMode = rowKey !== "" && editModeKey === rowKey;
   const initialForm = useMemo(() => (row ? getEditableState(row) : null), [row]);
   const form = formState?.key === rowKey ? formState.value : initialForm;
 
@@ -236,10 +237,6 @@ export function EverBeenHotDrawer({
     return () => window.clearTimeout(timer);
   }, [copied]);
 
-  useEffect(() => {
-    setIsEditMode(false);
-  }, [rowKey]);
-
   if (!row || selectedIndex === null || !form) return null;
 
   const currentIndex = selectedIndex;
@@ -267,12 +264,17 @@ export function EverBeenHotDrawer({
 
   const handleSave = () => {
     showSuccessToast("Lead changes saved successfully.");
-    setIsEditMode(false);
+    setEditModeKey(null);
   };
 
   const handleDrawerClose = () => {
-    setIsEditMode(false);
+    setEditModeKey(null);
     onClose();
+  };
+
+  const handleEditStart = () => {
+    if (!rowKey) return;
+    setEditModeKey(rowKey);
   };
 
   const handleCopyUrl = async () => {
@@ -404,7 +406,7 @@ export function EverBeenHotDrawer({
                 index={data.findIndex((item) => item.email === row.email)}
                 className="rounded"
               />
-              <EditableField label="Company" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
+              <EditableField label="Company" isEditMode={isEditMode} onEditStart={handleEditStart}>
                 <Select
                   value={form.companyName}
                   onChange={(value) => updateForm("companyName", String(value))}
@@ -422,28 +424,28 @@ export function EverBeenHotDrawer({
         </DetailCard>
 
         <DetailCard label="Personal Details">
-          <EditableField label="Full Name" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
+          <EditableField label="Full Name" isEditMode={isEditMode} onEditStart={handleEditStart}>
             <TextInput
               value={form.fullName}
               onChange={(event) => updateForm("fullName", event.target.value)}
               className="text-xs font-semibold"
             />
           </EditableField>
-          <EditableField label="Role" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
+          <EditableField label="Role" isEditMode={isEditMode} onEditStart={handleEditStart}>
             <TextInput
               value={form.role}
               onChange={(event) => updateForm("role", event.target.value)}
               className="text-xs font-semibold"
             />
           </EditableField>
-          <EditableField label="Phone" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
+          <EditableField label="Phone" isEditMode={isEditMode} onEditStart={handleEditStart}>
             <TextInput
               value={form.phone}
               onChange={(event) => updateForm("phone", event.target.value)}
               className="text-xs font-semibold"
             />
           </EditableField>
-          <EditableField label="Email" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
+          <EditableField label="Email" isEditMode={isEditMode} onEditStart={handleEditStart}>
             <TextInput
               type="email"
               value={form.email}
@@ -454,7 +456,7 @@ export function EverBeenHotDrawer({
         </DetailCard>
 
         <DetailCard label="Lead Details">
-          <EditableField label="Contact Type" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
+          <EditableField label="Contact Type" isEditMode={isEditMode} onEditStart={handleEditStart}>
             <Select
               value={form.contactType}
               onChange={(value) => updateForm("contactType", String(value))}
@@ -469,13 +471,13 @@ export function EverBeenHotDrawer({
               label="Not Work Anymore"
               checked={form.notWorked}
               onChange={(checked) => updateForm("notWorked", checked)}
-              onEditStart={() => setIsEditMode(true)}
+              onEditStart={handleEditStart}
             />
           </div>
         </DetailCard>
 
         <DetailCard label="Other Contacts">
-          <EditableField label="Contacts" align="stack" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
+          <EditableField label="Contacts" align="stack" isEditMode={isEditMode} onEditStart={handleEditStart}>
             <Textarea
               value={form.otherContacts}
               onChange={(event) =>
@@ -487,7 +489,7 @@ export function EverBeenHotDrawer({
         </DetailCard>
 
         <DetailCard label="SVG Details">
-          <EditableField label="Lead Type" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
+          <EditableField label="Lead Type" isEditMode={isEditMode} onEditStart={handleEditStart}>
             <Select
               value={form.svgLeadType}
               onChange={(value) => updateForm("svgLeadType", String(value))}
@@ -496,7 +498,7 @@ export function EverBeenHotDrawer({
               className="py-1.5 text-xs"
             />
           </EditableField>
-          <EditableField label="To Be Called By" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
+          <EditableField label="To Be Called By" isEditMode={isEditMode} onEditStart={handleEditStart}>
             <Select
               value={form.svgToBeCalledBy}
               onChange={(value) => updateForm("svgToBeCalledBy", String(value))}
@@ -505,7 +507,7 @@ export function EverBeenHotDrawer({
               className="py-1.5 text-xs"
             />
           </EditableField>
-          <EditableField label="To Be Called On" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
+          <EditableField label="To Be Called On" isEditMode={isEditMode} onEditStart={handleEditStart}>
             <DateInput
               value={form.svgToBeCalledOn}
               onChange={(event) =>
@@ -514,7 +516,7 @@ export function EverBeenHotDrawer({
               className="text-xs font-semibold"
             />
           </EditableField>
-          <EditableField label="History Calls" align="stack" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
+          <EditableField label="History Calls" align="stack" isEditMode={isEditMode} onEditStart={handleEditStart}>
             <Textarea
               value={form.svgHistoryCalls}
               onChange={(event) =>
@@ -523,7 +525,7 @@ export function EverBeenHotDrawer({
               className="text-xs font-semibold leading-5"
             />
           </EditableField>
-          <EditableField label="History Notes" align="stack" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
+          <EditableField label="History Notes" align="stack" isEditMode={isEditMode} onEditStart={handleEditStart}>
             <Textarea
               value={form.svgHistoryNotes}
               onChange={(event) =>
@@ -535,7 +537,7 @@ export function EverBeenHotDrawer({
         </DetailCard>
 
         <DetailCard label="Benton Details">
-          <EditableField label="Lead Type" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
+          <EditableField label="Lead Type" isEditMode={isEditMode} onEditStart={handleEditStart}>
             <Select
               value={form.bentonLeadType}
               onChange={(value) => updateForm("bentonLeadType", String(value))}
@@ -544,7 +546,7 @@ export function EverBeenHotDrawer({
               className="py-1.5 text-xs"
             />
           </EditableField>
-          <EditableField label="To Be Called By" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
+          <EditableField label="To Be Called By" isEditMode={isEditMode} onEditStart={handleEditStart}>
             <Select
               value={form.bentonToBeCalledBy}
               onChange={(value) =>
@@ -555,7 +557,7 @@ export function EverBeenHotDrawer({
               className="py-1.5 text-xs"
             />
           </EditableField>
-          <EditableField label="To Be Called On" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
+          <EditableField label="To Be Called On" isEditMode={isEditMode} onEditStart={handleEditStart}>
             <DateInput
               value={form.bentonToBeCalledOn}
               onChange={(event) =>
@@ -564,7 +566,7 @@ export function EverBeenHotDrawer({
               className="text-xs font-semibold"
             />
           </EditableField>
-          <EditableField label="History Calls" align="stack" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
+          <EditableField label="History Calls" align="stack" isEditMode={isEditMode} onEditStart={handleEditStart}>
             <Textarea
               value={form.bentonHistoryCalls}
               onChange={(event) =>
@@ -573,7 +575,7 @@ export function EverBeenHotDrawer({
               className="text-xs font-semibold leading-5"
             />
           </EditableField>
-          <EditableField label="History Notes" align="stack" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
+          <EditableField label="History Notes" align="stack" isEditMode={isEditMode} onEditStart={handleEditStart}>
             <Textarea
               value={form.bentonHistoryNotes}
               onChange={(event) =>

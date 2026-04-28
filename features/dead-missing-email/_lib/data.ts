@@ -17,25 +17,6 @@ export type DeadMissingEmailRow = {
   fullName: string;
 };
 
-function createAdditionalContactEmails(lead: LEAD, index: number) {
-  const fallbackName = lead.full_name?.toLowerCase().replace(/\s+/g, ".") ?? "contact";
-  const companySlug =
-    lead.company?.name.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 16) ||
-    "company";
-
-  if (index % 4 === 0) {
-    return "";
-  }
-
-  return [
-    lead.additional_contacts,
-    lead.additonal_contacts,
-    `${fallbackName}.assistant@${companySlug}.com`,
-  ]
-    .filter(Boolean)
-    .join(", ");
-}
-
 function mapLeadToDeadMissingEmailRow(
   lead: LEAD,
   index: number,
