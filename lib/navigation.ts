@@ -16,6 +16,7 @@ import {
   RefreshCw,
   RotateCcw,
   Target,
+  Upload,
   UserPlus,
   Wrench,
   type LucideIcon,
@@ -187,9 +188,29 @@ export const adminOnlyNavigation: NavigationItem[] = [
     icon: MailX,
   },
   {
-    label: "Companies",
-    href: "/companies",
+    label: "Add Company",
+    href: "/companies/add",
     icon: Building2,
+  },
+  {
+    label: "Bulk Company Import",
+    href: "/companies/bulk-import",
+    icon: Upload,
+  },
+  {
+    label: "Update Company",
+    href: "/companies/update",
+    icon: Building2,
+  },
+  {
+    label: "Add Lead",
+    href: "/leads/add",
+    icon: UserPlus,
+  },
+  {
+    label: "Bulk Lead Import",
+    href: "/leads/bulk-import",
+    icon: Upload,
   },
   {
     label: "All Leads",

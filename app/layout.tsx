@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../public/css/globals.css";
+import "react-phone-input-2/lib/style.css";
 import QueryProvider from "@/providers/QueryProvider";
 import { ToastContainer } from "react-toastify";
 import { AuthProvider } from "@/providers/AuthProvider";
