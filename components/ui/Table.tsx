@@ -39,6 +39,7 @@ type Props<T> = {
   emptyText?: string;
   emptyState?: React.ReactNode;
   showTableWhenEmpty?: boolean;
+  showToolbarTitle?: boolean;
   onRowClick?: (row: T) => void;
   title: string;
   description?: string;
@@ -267,6 +268,7 @@ export function Table<T>({
   emptyText = "No data found",
   emptyState,
   showTableWhenEmpty = false,
+  showToolbarTitle = true,
   onRowClick,
 }: Props<T>) {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
@@ -1176,14 +1178,18 @@ export function Table<T>({
   return (
     <div>
       <div className="flex items-center justify-center md:justify-between mb-2 border-b border-slate-200/80 bg-white/75 px-8 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/70">
-        <div className="min-w-0 py-2 hidden md:block">
-          <h3 className="truncate text-base font-semibold text-slate-900 dark:text-slate-100">
-            {title}
-          </h3>
-          <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-            {description}
-          </p>
-        </div>
+        {showToolbarTitle ? (
+          <div className="min-w-0 py-2 hidden md:block">
+            <h3 className="truncate text-base font-semibold text-slate-900 dark:text-slate-100">
+              {title}
+            </h3>
+            <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+              {description}
+            </p>
+          </div>
+        ) : (
+          <div className="hidden md:block" />
+        )}
         <div className="flex items-center justify-end gap-2">
           <Popover className="relative">
             <PopoverButton className={toolbarButtonClass}>
