@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui";
+import { downloadWorkbook, readFirstWorksheet } from "@/lib/excel";
 import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import { validateForm } from "@/lib/validation";
 import {
@@ -9,7 +10,6 @@ import {
 } from "@/lib/validation/lead-create";
 import { Download, FileSpreadsheet, Upload } from "lucide-react";
 import { useRef, useState } from "react";
-import * as XLSX from "xlsx";
 import { createLeadDirectoryRow } from "../_lib/data";
 import { getStoredLeads, saveStoredLeads } from "../_lib/storage";
 
@@ -101,10 +101,6 @@ function buildLeadFromForm(values: LeadCreateFormValues) {
   );
 }
 
-function downloadWorkbook(workbook: XLSX.WorkBook, filename: string) {
-  XLSX.writeFile(workbook, filename);
-}
-
 export function BulkLeadImport() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedFileName, setSelectedFileName] = useState("");
@@ -112,38 +108,44 @@ export function BulkLeadImport() {
   const [summary, setSummary] = useState<ImportSummary | null>(null);
   const [failedRows, setFailedRows] = useState<FailedImportRow[]>([]);
 
-  const handleTemplateDownload = () => {
-    const workbook = XLSX.utils.book_new();
-    const templateSheet = XLSX.utils.json_to_sheet([templateExampleRow], {
-      header: TEMPLATE_COLUMNS,
-    });
-    const instructionsSheet = XLSX.utils.aoa_to_sheet([
-      ["Field", "Required", "Notes"],
-      ["fullName", "Yes", "Full contact name"],
-      ["firstName", "Yes", "Lead first name"],
-      ["lastName", "Yes", "Lead last name"],
-      ["phone", "Yes", "Primary phone number"],
-      ["phoneExtension", "No", "Phone extension if available"],
-      ["email", "Yes", "Must be unique across leads"],
-      ["role", "Yes", "Job title or role"],
+  const handleTemplateDownload = async () => {
+    await downloadWorkbook("sidago-bulk-lead-import-template.xlsx", [
+      {
+        kind: "object",
+        name: "Lead Template",
+        columns: TEMPLATE_COLUMNS,
+        rows: [templateExampleRow],
+      },
+      {
+        kind: "matrix",
+        name: "Instructions",
+        rows: [
+          ["Field", "Required", "Notes"],
+          ["fullName", "Yes", "Full contact name"],
+          ["firstName", "Yes", "Lead first name"],
+          ["lastName", "Yes", "Lead last name"],
+          ["phone", "Yes", "Primary phone number"],
+          ["phoneExtension", "No", "Phone extension if available"],
+          ["email", "Yes", "Must be unique across leads"],
+          ["role", "Yes", "Job title or role"],
+        ],
+      },
     ]);
-
-    XLSX.utils.book_append_sheet(workbook, templateSheet, "Lead Template");
-    XLSX.utils.book_append_sheet(workbook, instructionsSheet, "Instructions");
-    downloadWorkbook(workbook, "sidago-bulk-lead-import-template.xlsx");
   };
 
-  const handleErrorReportDownload = () => {
+  const handleErrorReportDownload = async () => {
     if (failedRows.length === 0) {
       return;
     }
 
-    const workbook = XLSX.utils.book_new();
-    const errorSheet = XLSX.utils.json_to_sheet(failedRows, {
-      header: ["rowNumber", ...TEMPLATE_COLUMNS, "errors"],
-    });
-    XLSX.utils.book_append_sheet(workbook, errorSheet, "Import Errors");
-    downloadWorkbook(workbook, "sidago-bulk-lead-import-errors.xlsx");
+    await downloadWorkbook("sidago-bulk-lead-import-errors.xlsx", [
+      {
+        kind: "object",
+        name: "Import Errors",
+        columns: ["rowNumber", ...TEMPLATE_COLUMNS, "errors"],
+        rows: failedRows,
+      },
+    ]);
   };
 
   const handleUploadClick = () => {
@@ -172,22 +174,7 @@ export function BulkLeadImport() {
     setIsProcessing(true);
 
     try {
-      const buffer = await file.arrayBuffer();
-      const workbook = XLSX.read(buffer, { type: "array" });
-      const worksheetName = workbook.SheetNames[0];
-
-      if (!worksheetName) {
-        throw new Error("The uploaded workbook does not contain any sheets.");
-      }
-
-      const worksheet = workbook.Sheets[worksheetName];
-      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, {
-        defval: "",
-      });
-      const headerRow = XLSX.utils.sheet_to_json<string[]>(worksheet, {
-        header: 1,
-        blankrows: false,
-      })[0] ?? [];
+      const { rows, headerRow } = await readFirstWorksheet(file);
 
       const missingColumns = REQUIRED_COLUMNS.filter(
         (column) => !headerRow.some((header) => String(header).trim() === column),

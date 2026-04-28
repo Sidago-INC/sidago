@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui";
+import { downloadWorkbook, readFirstWorksheet } from "@/lib/excel";
 import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import { validateForm } from "@/lib/validation";
 import { companyValidationSchema } from "@/lib/validation/company";
@@ -9,7 +10,6 @@ import { TIMEZONE_OPTIONS } from "@/types/timezone.types";
 import { type COMPANY } from "@/types/company.types";
 import { Download, FileSpreadsheet, Upload } from "lucide-react";
 import { useRef, useState } from "react";
-import * as XLSX from "xlsx";
 import { getStoredCompanies, saveStoredCompanies } from "../_lib/storage";
 
 const TEMPLATE_COLUMNS: Array<keyof COMPANY> = [
@@ -77,10 +77,6 @@ function normalizeCompany(values: Record<string, unknown>): COMPANY {
   };
 }
 
-function downloadWorkbook(workbook: XLSX.WorkBook, filename: string) {
-  XLSX.writeFile(workbook, filename);
-}
-
 export function BulkCompanyImport() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedFileName, setSelectedFileName] = useState("");
@@ -88,51 +84,57 @@ export function BulkCompanyImport() {
   const [summary, setSummary] = useState<ImportSummary | null>(null);
   const [failedRows, setFailedRows] = useState<FailedImportRow[]>([]);
 
-  const handleTemplateDownload = () => {
-    const workbook = XLSX.utils.book_new();
-    const templateSheet = XLSX.utils.json_to_sheet([templateExampleRow], {
-      header: TEMPLATE_COLUMNS,
-    });
-    const instructionsSheet = XLSX.utils.aoa_to_sheet([
-      ["Field", "Required", "Notes"],
-      ["symbol", "Yes", "Unique company symbol, max 10 chars"],
-      ["name", "Yes", "Company name"],
-      [
-        "timezone",
-        "Yes",
-        `Use one of: ${TIMEZONE_OPTIONS.map((item) => item.value).join(", ")}`,
-      ],
-      [
-        "country",
-        "Yes",
-        `Use one of: ${COUNTRY_OPTIONS.map((item) => item.value).join(", ")}`,
-      ],
-      ["description", "Yes", "Company description"],
-      ["estimatedMarketCap", "Yes", "Examples: $4.2B, 920M"],
-      ["primaryVenue", "Yes", "Examples: NASDAQ, NYSE, TSX"],
-      ["city", "Yes", "Company city"],
-      ["state", "Yes", "State, province, or region"],
-      ["website", "Yes", "Must start with http:// or https://"],
-      ["twitterHandle", "Yes", "Valid X/Twitter handle"],
-      ["zip", "Yes", "Postal or zip code"],
+  const handleTemplateDownload = async () => {
+    await downloadWorkbook("sidago-bulk-company-import-template.xlsx", [
+      {
+        kind: "object",
+        name: "Company Template",
+        columns: TEMPLATE_COLUMNS,
+        rows: [templateExampleRow],
+      },
+      {
+        kind: "matrix",
+        name: "Instructions",
+        rows: [
+          ["Field", "Required", "Notes"],
+          ["symbol", "Yes", "Unique company symbol, max 10 chars"],
+          ["name", "Yes", "Company name"],
+          [
+            "timezone",
+            "Yes",
+            `Use one of: ${TIMEZONE_OPTIONS.map((item) => item.value).join(", ")}`,
+          ],
+          [
+            "country",
+            "Yes",
+            `Use one of: ${COUNTRY_OPTIONS.map((item) => item.value).join(", ")}`,
+          ],
+          ["description", "Yes", "Company description"],
+          ["estimatedMarketCap", "Yes", "Examples: $4.2B, 920M"],
+          ["primaryVenue", "Yes", "Examples: NASDAQ, NYSE, TSX"],
+          ["city", "Yes", "Company city"],
+          ["state", "Yes", "State, province, or region"],
+          ["website", "Yes", "Must start with http:// or https://"],
+          ["twitterHandle", "Yes", "Valid X/Twitter handle"],
+          ["zip", "Yes", "Postal or zip code"],
+        ],
+      },
     ]);
-
-    XLSX.utils.book_append_sheet(workbook, templateSheet, "Company Template");
-    XLSX.utils.book_append_sheet(workbook, instructionsSheet, "Instructions");
-    downloadWorkbook(workbook, "sidago-bulk-company-import-template.xlsx");
   };
 
-  const handleErrorReportDownload = () => {
+  const handleErrorReportDownload = async () => {
     if (failedRows.length === 0) {
       return;
     }
 
-    const workbook = XLSX.utils.book_new();
-    const errorSheet = XLSX.utils.json_to_sheet(failedRows, {
-      header: ["rowNumber", ...TEMPLATE_COLUMNS, "errors"],
-    });
-    XLSX.utils.book_append_sheet(workbook, errorSheet, "Import Errors");
-    downloadWorkbook(workbook, "sidago-bulk-company-import-errors.xlsx");
+    await downloadWorkbook("sidago-bulk-company-import-errors.xlsx", [
+      {
+        kind: "object",
+        name: "Import Errors",
+        columns: ["rowNumber", ...TEMPLATE_COLUMNS, "errors"],
+        rows: failedRows,
+      },
+    ]);
   };
 
   const handleUploadClick = () => {
@@ -161,22 +163,7 @@ export function BulkCompanyImport() {
     setIsProcessing(true);
 
     try {
-      const buffer = await file.arrayBuffer();
-      const workbook = XLSX.read(buffer, { type: "array" });
-      const worksheetName = workbook.SheetNames[0];
-
-      if (!worksheetName) {
-        throw new Error("The uploaded workbook does not contain any sheets.");
-      }
-
-      const worksheet = workbook.Sheets[worksheetName];
-      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, {
-        defval: "",
-      });
-      const headerRow = XLSX.utils.sheet_to_json<string[]>(worksheet, {
-        header: 1,
-        blankrows: false,
-      })[0] ?? [];
+      const { rows, headerRow } = await readFirstWorksheet(file);
 
       const missingColumns = REQUIRED_COLUMNS.filter(
         (column) => !headerRow.some((header) => String(header).trim() === column),
