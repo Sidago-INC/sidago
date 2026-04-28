@@ -261,7 +261,7 @@ export function BulkLeadImport() {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-8xl flex-col gap-5 px-4 py-6 lg:px-6">
+    <div className="mx-auto flex w-full flex-col gap-5 px-4 py-6 lg:px-6">
       <Card className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
         <CardContent className="p-0">
           <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-700 sm:px-6">
