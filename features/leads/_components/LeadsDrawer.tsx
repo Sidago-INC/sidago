@@ -5,7 +5,6 @@ import {
   DatePickerField,
   Drawer,
   EditableDrawerFooter,
-  EmailLink,
   Select,
   Textarea,
   TextInput,
@@ -14,12 +13,13 @@ import {
 } from "@/components/ui";
 import type { Column } from "@/components/ui/Table";
 import { showSuccessToast } from "@/lib/toast";
+import Revisions from "@/features/backoffice-shared/Revisions";
 import { AGENT_VALUES } from "@/types/agent.types";
 import { COMPANY_VALUES } from "@/types/company.types";
 import { CONTACT_TYPE_VALUES } from "@/types/contact-type.types";
 import { LEAD_TYPE_VALUES } from "@/types/lead-type.types";
 import { Check, ChevronDown, ChevronUp, Link, Printer } from "lucide-react";
-import { isValidElement, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   getCompanySymbol,
@@ -156,6 +156,7 @@ export function LeadsDrawer({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [copied, setCopied] = useState(false);
+  const [editModeKey, setEditModeKey] = useState<string | null>(null);
   const [formState, setFormState] = useState<{
     key: string;
     value: EditableDrawerState;
@@ -163,6 +164,7 @@ export function LeadsDrawer({
 
   const row = selectedIndex === null ? null : (data[selectedIndex] ?? null);
   const rowKey = row?.email ?? "";
+  const isEditMode = rowKey !== "" && editModeKey === rowKey;
   const initialForm = useMemo(() => (row ? getEditableState(row) : null), [row]);
   const form = formState?.key === rowKey ? formState.value : initialForm;
 
@@ -246,8 +248,16 @@ export function LeadsDrawer({
     }));
   };
 
+  const handleEditStart = () => {
+    if (!rowKey) return;
+    setEditModeKey(rowKey);
+  };
+
   const handleReset = () => setFormState(null);
-  const handleSave = () => showSuccessToast("Lead changes saved successfully.");
+  const handleSave = () => {
+    showSuccessToast("Lead changes saved successfully.");
+    setEditModeKey(null);
+  };
   const handleCopyUrl = async () => {
     if (!drawerUrl) return;
     await navigator.clipboard.writeText(drawerUrl);
@@ -343,14 +353,18 @@ export function LeadsDrawer({
         </div>
       }
       footer={
-        <EditableDrawerFooter
-          onCancel={onClose}
-          onReset={handleReset}
-          onSave={handleSave}
-        />
+        isEditMode ? (
+          <EditableDrawerFooter
+            onCancel={() => { setEditModeKey(null); onClose(); }}
+            onReset={handleReset}
+            onSave={handleSave}
+          />
+        ) : (
+          <Revisions />
+        )
       }
     >
-      <div className="space-y-5">
+      <div className="space-y-5" onFocus={handleEditStart}>
         <DetailCard>
           <div className="flex items-center justify-between gap-4">
             <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -649,9 +663,6 @@ function EditableField({
   children: React.ReactNode;
   align?: "row" | "stack";
 }) {
-  const [isEditing, setIsEditing] = useState(false);
-  const preview = getEditablePreview(label, children);
-
   return (
     <div
       className={
@@ -664,61 +675,10 @@ function EditableField({
         {label}
       </p>
       <div className={align === "stack" ? "w-full" : "w-64 max-w-[65%]"}>
-        {isEditing ? (
-          children
-        ) : (
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={() => setIsEditing(true)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                setIsEditing(true);
-              }
-            }}
-            className={`w-full cursor-text rounded border border-gray-300 bg-white text-xs font-semibold text-slate-600 transition focus:border-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-slate-200 ${
-              align === "stack"
-                ? "min-h-[98px] whitespace-pre-line px-3 py-2 text-left"
-                : "min-h-[30px] truncate px-3 py-1.5 text-left"
-            }`}
-          >
-            {preview}
-          </div>
-        )}
+        {children}
       </div>
     </div>
   );
-}
-
-function getEditablePreview(
-  label: string,
-  children: React.ReactNode,
-): React.ReactNode {
-  if (!isValidElement(children)) return <EmptyPreview label={label} />;
-  const props = children.props as {
-    value?: unknown;
-    checked?: boolean;
-    options?: Array<{ label: string; value: string | number }>;
-  };
-
-  if (typeof props.checked === "boolean") {
-    return props.checked ? "Yes" : "No";
-  }
-
-  const value = props.value == null ? "" : String(props.value);
-  if (!value) return <EmptyPreview label={label} />;
-
-  if (label.toLowerCase() === "email") {
-    return <EmailLink value={value} />;
-  }
-
-  const option = props.options?.find((item) => String(item.value) === value);
-  return option?.label ?? value;
-}
-
-function EmptyPreview({ label }: { label: string }) {
-  return <span aria-label={`Empty ${label}`} className="block" />;
 }
 
 function AssociationDetail({

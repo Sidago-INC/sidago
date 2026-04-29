@@ -5,7 +5,6 @@ import {
   Drawer,
   DrawerActionHeader,
   EditableDrawerFooter,
-  EditableField,
   Select,
   Textarea,
   TextInput,
@@ -34,6 +33,33 @@ function escapeHtml(value: string) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+}
+
+function Field({
+  label,
+  children,
+  align = "row",
+}: {
+  label: string;
+  children: React.ReactNode;
+  align?: "row" | "stack";
+}) {
+  return (
+    <div
+      className={
+        align === "stack"
+          ? "space-y-1 py-2"
+          : "flex items-center justify-between gap-4 py-1.5"
+      }
+    >
+      <p className="shrink-0 text-[10px] uppercase tracking-widest text-slate-400">
+        {label}
+      </p>
+      <div className={align === "stack" ? "w-full" : "w-64 max-w-[65%]"}>
+        {children}
+      </div>
+    </div>
+  );
 }
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
@@ -167,45 +193,45 @@ export function AgentSmsDrawer({
             }
           />
           <DetailRow label="Company Name" value={row.companyName} />
-          <EditableField label="Full Name">
+          <Field label="Full Name">
             <TextInput
               value={row.fullName}
               onChange={(event) => onChange("fullName", event.target.value)}
               className="text-sm font-medium"
             />
-          </EditableField>
-          <EditableField label="Phone">
+          </Field>
+          <Field label="Phone">
             <TextInput
               value={row.phone}
               onChange={(event) => onChange("phone", event.target.value)}
               className="text-sm font-medium"
             />
-          </EditableField>
-          <EditableField label="Email">
+          </Field>
+          <Field label="Email">
             <TextInput
               type="email"
               value={row.email}
               onChange={(event) => onChange("email", event.target.value)}
               className="text-sm font-medium"
             />
-          </EditableField>
+          </Field>
           <DetailRow label="Brand" value={row.brand} />
-          <EditableField label="SMS Status">
+          <Field label="SMS Status">
             <Select
               value={row.smsStatus}
               onChange={(value) => onChange("smsStatus", String(value))}
               options={smsStatusOptions}
               className="text-sm font-medium"
             />
-          </EditableField>
-          <EditableField label={`${row.brand} SMS Log`} align="stack">
+          </Field>
+          <Field label={`${row.brand} SMS Log`} align="stack">
             <Textarea
               value={row.smsLog}
               onChange={(event) => onChange("smsLog", event.target.value)}
               rows={4}
               className="text-sm font-medium leading-5"
             />
-          </EditableField>
+          </Field>
         </dl>
       )}
     </Drawer>
