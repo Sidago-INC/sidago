@@ -5,7 +5,6 @@ import {
   DatePickerField,
   Drawer,
   EditableDrawerFooter,
-  EmailLink,
   Select,
   Textarea,
   TextInput,
@@ -15,7 +14,7 @@ import {
 import type { Column } from "@/components/ui/Table";
 import { getCompanySymbol, getLeadId, type LeadRow } from "../_lib/data";
 import { Check, ChevronDown, ChevronUp, Link, Printer } from "lucide-react";
-import { isValidElement, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { AGENT_VALUES } from "@/types/agent.types";
 import { COMPANY_VALUES } from "@/types/company.types";
@@ -97,35 +96,14 @@ function stripTimezonePrefix(timezone: string | undefined) {
 }
 
 function ToggleField({
-  isEditMode,
   checked,
   label,
   onChange,
-  onEditStart,
 }: {
-  isEditMode: boolean;
   checked: boolean;
   label: string;
   onChange: (checked: boolean) => void;
-  onEditStart: () => void;
 }) {
-  if (!isEditMode) {
-    return (
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
-          {label}
-        </span>
-        <button
-          type="button"
-          onClick={onEditStart}
-          className="min-w-16 cursor-pointer rounded border border-gray-300 bg-white px-3 py-1.5 text-left text-xs font-semibold text-slate-600 transition hover:border-slate-300 dark:border-gray-600 dark:bg-gray-800 dark:text-slate-200"
-        >
-          {checked ? "Yes" : "No"}
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="flex items-center justify-between gap-3">
       <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
@@ -262,19 +240,14 @@ export function CurrentlyHotDrawer({
     setFormState(null);
   };
 
-  const handleSave = () => {
-    showSuccessToast("Lead changes saved successfully.");
-    setEditModeKey(null);
-  };
-
-  const handleDrawerClose = () => {
-    setEditModeKey(null);
-    onClose();
-  };
-
   const handleEditStart = () => {
     if (!rowKey) return;
     setEditModeKey(rowKey);
+  };
+
+  const handleSave = () => {
+    showSuccessToast("Lead changes saved successfully.");
+    setEditModeKey(null);
   };
 
   const handleCopyUrl = async () => {
@@ -330,7 +303,7 @@ export function CurrentlyHotDrawer({
   return (
     <Drawer
       isOpen={selectedIndex !== null}
-      onClose={handleDrawerClose}
+      onClose={onClose}
       direction="right"
       size="560px"
       header={
@@ -377,7 +350,7 @@ export function CurrentlyHotDrawer({
             </button>
             <button
               onClick={handleCopyUrl}
-              title="Print"
+              title="Copy URL"
               className="group flex h-7 w-7 items-center justify-center rounded border cursor-pointer border-slate-200 text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
             >
               <Link
@@ -390,7 +363,7 @@ export function CurrentlyHotDrawer({
       footer={
         isEditMode ? (
           <EditableDrawerFooter
-            onCancel={handleDrawerClose}
+            onCancel={() => { setEditModeKey(null); onClose(); }}
             onReset={handleReset}
             onSave={handleSave}
           />
@@ -399,7 +372,7 @@ export function CurrentlyHotDrawer({
         )
       }
     >
-      <div className="space-y-5">
+      <div className="space-y-5" onFocus={handleEditStart}>
         <DetailCard>
           <div className="flex items-center justify-between gap-4">
             <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -408,7 +381,7 @@ export function CurrentlyHotDrawer({
                 index={data.findIndex((item) => item.email === row.email)}
                 className="rounded"
               />
-              <EditableField label="Company" isEditMode={isEditMode} onEditStart={handleEditStart}>
+              <EditableField label="Company">
                 <Select
                   value={form.companyName}
                   onChange={(value) => updateForm("companyName", String(value))}
@@ -426,28 +399,28 @@ export function CurrentlyHotDrawer({
         </DetailCard>
 
         <DetailCard label="Personal Details">
-          <EditableField label="Full Name" isEditMode={isEditMode} onEditStart={handleEditStart}>
+          <EditableField label="Full Name">
             <TextInput
               value={form.fullName}
               onChange={(event) => updateForm("fullName", event.target.value)}
               className="text-xs font-semibold"
             />
           </EditableField>
-          <EditableField label="Role" isEditMode={isEditMode} onEditStart={handleEditStart}>
+          <EditableField label="Role">
             <TextInput
               value={form.role}
               onChange={(event) => updateForm("role", event.target.value)}
               className="text-xs font-semibold"
             />
           </EditableField>
-          <EditableField label="Phone" isEditMode={isEditMode} onEditStart={handleEditStart}>
+          <EditableField label="Phone">
             <TextInput
               value={form.phone}
               onChange={(event) => updateForm("phone", event.target.value)}
               className="text-xs font-semibold"
             />
           </EditableField>
-          <EditableField label="Email" isEditMode={isEditMode} onEditStart={handleEditStart}>
+          <EditableField label="Email">
             <TextInput
               type="email"
               value={form.email}
@@ -458,7 +431,7 @@ export function CurrentlyHotDrawer({
         </DetailCard>
 
         <DetailCard label="Lead Details">
-          <EditableField label="Contact Type" isEditMode={isEditMode} onEditStart={handleEditStart}>
+          <EditableField label="Contact Type">
             <Select
               value={form.contactType}
               onChange={(value) => updateForm("contactType", String(value))}
@@ -469,17 +442,15 @@ export function CurrentlyHotDrawer({
           </EditableField>
           <div className="py-1.5">
             <ToggleField
-              isEditMode={isEditMode}
               label="Not Work Anymore"
               checked={form.notWorked}
               onChange={(checked) => updateForm("notWorked", checked)}
-              onEditStart={handleEditStart}
             />
           </div>
         </DetailCard>
 
         <DetailCard label="Other Contacts">
-          <EditableField label="Contacts" align="stack" isEditMode={isEditMode} onEditStart={handleEditStart}>
+          <EditableField label="Contacts" align="stack">
             <Textarea
               value={form.otherContacts}
               onChange={(event) =>
@@ -491,7 +462,7 @@ export function CurrentlyHotDrawer({
         </DetailCard>
 
         <DetailCard label="SVG Details">
-          <EditableField label="Lead Type" isEditMode={isEditMode} onEditStart={handleEditStart}>
+          <EditableField label="Lead Type">
             <Select
               value={form.svgLeadType}
               onChange={(value) => updateForm("svgLeadType", String(value))}
@@ -500,7 +471,7 @@ export function CurrentlyHotDrawer({
               className="py-1.5 text-xs"
             />
           </EditableField>
-          <EditableField label="To Be Called By" isEditMode={isEditMode} onEditStart={handleEditStart}>
+          <EditableField label="To Be Called By">
             <Select
               value={form.svgToBeCalledBy}
               onChange={(value) => updateForm("svgToBeCalledBy", String(value))}
@@ -509,14 +480,14 @@ export function CurrentlyHotDrawer({
               className="py-1.5 text-xs"
             />
           </EditableField>
-          <EditableField label="To Be Called On" isEditMode={isEditMode} onEditStart={handleEditStart}>
+          <EditableField label="To Be Called On">
             <DatePickerField
               value={form.svgToBeCalledOn}
               onChange={(value) => updateForm("svgToBeCalledOn", value)}
               className="text-xs font-semibold"
             />
           </EditableField>
-          <EditableField label="History Calls" align="stack" isEditMode={isEditMode} onEditStart={handleEditStart}>
+          <EditableField label="History Calls" align="stack">
             <Textarea
               value={form.svgHistoryCalls}
               onChange={(event) =>
@@ -525,7 +496,7 @@ export function CurrentlyHotDrawer({
               className="text-xs font-semibold leading-5"
             />
           </EditableField>
-          <EditableField label="History Notes" align="stack" isEditMode={isEditMode} onEditStart={handleEditStart}>
+          <EditableField label="History Notes" align="stack">
             <Textarea
               value={form.svgHistoryNotes}
               onChange={(event) =>
@@ -537,7 +508,7 @@ export function CurrentlyHotDrawer({
         </DetailCard>
 
         <DetailCard label="Benton Details">
-          <EditableField label="Lead Type" isEditMode={isEditMode} onEditStart={handleEditStart}>
+          <EditableField label="Lead Type">
             <Select
               value={form.bentonLeadType}
               onChange={(value) => updateForm("bentonLeadType", String(value))}
@@ -546,7 +517,7 @@ export function CurrentlyHotDrawer({
               className="py-1.5 text-xs"
             />
           </EditableField>
-          <EditableField label="To Be Called By" isEditMode={isEditMode} onEditStart={handleEditStart}>
+          <EditableField label="To Be Called By">
             <Select
               value={form.bentonToBeCalledBy}
               onChange={(value) =>
@@ -557,14 +528,14 @@ export function CurrentlyHotDrawer({
               className="py-1.5 text-xs"
             />
           </EditableField>
-          <EditableField label="To Be Called On" isEditMode={isEditMode} onEditStart={handleEditStart}>
+          <EditableField label="To Be Called On">
             <DatePickerField
               value={form.bentonToBeCalledOn}
               onChange={(value) => updateForm("bentonToBeCalledOn", value)}
               className="text-xs font-semibold"
             />
           </EditableField>
-          <EditableField label="History Calls" align="stack" isEditMode={isEditMode} onEditStart={handleEditStart}>
+          <EditableField label="History Calls" align="stack">
             <Textarea
               value={form.bentonHistoryCalls}
               onChange={(event) =>
@@ -573,7 +544,7 @@ export function CurrentlyHotDrawer({
               className="text-xs font-semibold leading-5"
             />
           </EditableField>
-          <EditableField label="History Notes" align="stack" isEditMode={isEditMode} onEditStart={handleEditStart}>
+          <EditableField label="History Notes" align="stack">
             <Textarea
               value={form.bentonHistoryNotes}
               onChange={(event) =>
@@ -631,17 +602,11 @@ function EditableField({
   label,
   children,
   align = "row",
-  isEditMode,
-  onEditStart,
 }: {
   label: string;
   children: React.ReactNode;
   align?: "row" | "stack";
-  isEditMode: boolean;
-  onEditStart: () => void;
 }) {
-  const preview = getEditablePreview(label, children);
-
   return (
     <div
       className={
@@ -654,70 +619,9 @@ function EditableField({
         {label}
       </p>
       <div className={align === "stack" ? "w-full" : "w-64 max-w-[65%]"}>
-        {isEditMode ? (
-          children
-        ) : (
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={onEditStart}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                onEditStart();
-              }
-            }}
-            className={`w-full cursor-text rounded border border-gray-300 bg-white text-xs font-semibold text-slate-600 transition focus:border-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-slate-200 ${
-              align === "stack"
-                ? "min-h-24.5 px-3 py-2 text-left whitespace-pre-line"
-                : "min-h-7.5 px-3 py-1.5 text-left truncate"
-            }`}
-          >
-            {preview}
-          </div>
-        )}
+        {children}
       </div>
     </div>
-  );
-}
-
-function getEditablePreview(
-  label: string,
-  children: React.ReactNode,
-): React.ReactNode {
-  if (!isValidElement(children)) return <EmptyPreview label={label} />;
-
-  const props = children.props as {
-    value?: unknown;
-    checked?: boolean;
-    options?: Array<{ label: string; value: string | number }>;
-  };
-
-  if (typeof props.checked === "boolean") {
-    return props.checked ? "Yes" : "No";
-  }
-
-  const value = props.value == null ? "" : String(props.value);
-  if (!value) return <EmptyPreview label={label} />;
-
-  if (label.toLowerCase() === "email") {
-    return <EmailLink value={value} />;
-  }
-
-  const option = props.options?.find((item) => String(item.value) === value);
-  return option?.label ?? value;
-}
-
-function EmptyPreview({
-  label,
-}: {
-  label: string;
-}) {
-  return (
-    <span
-      aria-label={`Empty ${label}`}
-      className="block"
-    />
   );
 }
 

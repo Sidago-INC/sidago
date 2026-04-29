@@ -4,7 +4,6 @@ import {
   CompanySymbolBadge,
   DatePickerField,
   Drawer,
-  EditableField,
   EditableDrawerFooter,
   Select,
   TimezoneBadge,
@@ -26,6 +25,7 @@ import {
   getLeadId,
 } from "@/features/backoffice-shared/constants";
 import { showSuccessToast } from "@/lib/toast";
+import Revisions from "@/features/backoffice-shared/Revisions";
 
 type RecentInterestDrawerProps = {
   data: RecentInterestRow[];
@@ -96,6 +96,7 @@ export function RecentInterestDrawer({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [copied, setCopied] = useState(false);
+  const [editModeKey, setEditModeKey] = useState<string | null>(null);
   const [formState, setFormState] = useState<{
     key: string;
     value: EditableRecentInterestState;
@@ -103,6 +104,7 @@ export function RecentInterestDrawer({
 
   const row = selectedIndex === null ? null : (data[selectedIndex] ?? null);
   const rowKey = row?.email ?? "";
+  const isEditMode = rowKey !== "" && editModeKey === rowKey;
   const initialForm = useMemo(() => (row ? getEditableState(row) : null), [row]);
   const form = formState?.key === rowKey ? formState.value : initialForm;
 
@@ -170,6 +172,11 @@ export function RecentInterestDrawer({
     setFormState(null);
   };
 
+  const handleEditStart = () => {
+    if (!rowKey) return;
+    setEditModeKey(rowKey);
+  };
+
   const handleSave = () => {
     setFormState({
       key: rowKey,
@@ -183,6 +190,7 @@ export function RecentInterestDrawer({
       },
     });
     showSuccessToast("Recent interest changes saved successfully.");
+    setEditModeKey(null);
   };
 
   const handlePrint = () => {
@@ -298,14 +306,18 @@ export function RecentInterestDrawer({
         </div>
       }
       footer={
-        <EditableDrawerFooter
-          onCancel={onClose}
-          onReset={handleReset}
-          onSave={handleSave}
-        />
+        isEditMode ? (
+          <EditableDrawerFooter
+            onCancel={() => { setEditModeKey(null); onClose(); }}
+            onReset={handleReset}
+            onSave={handleSave}
+          />
+        ) : (
+          <Revisions />
+        )
       }
     >
-      <div className="space-y-5">
+      <div className="space-y-5" onFocus={handleEditStart}>
         <DetailCard>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
@@ -437,6 +449,33 @@ function DetailCard({
         <>{label}</>
       )}
       <div className="space-y-0">{children}</div>
+    </div>
+  );
+}
+
+function EditableField({
+  label,
+  children,
+  align = "row",
+}: {
+  label: string;
+  children: React.ReactNode;
+  align?: "row" | "stack";
+}) {
+  return (
+    <div
+      className={
+        align === "stack"
+          ? "space-y-1 py-2"
+          : "flex items-center justify-between gap-4 py-1.5"
+      }
+    >
+      <p className="shrink-0 text-[10px] uppercase tracking-widest text-slate-400">
+        {label}
+      </p>
+      <div className={align === "stack" ? "w-full" : "w-64 max-w-[65%]"}>
+        {children}
+      </div>
     </div>
   );
 }

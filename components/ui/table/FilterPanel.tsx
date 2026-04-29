@@ -204,7 +204,7 @@ function GroupAddMenu({
       </PopoverButton>
       <PopoverPanel
         anchor="bottom start"
-        className="z-[300] w-56 rounded-xl border border-slate-200 bg-white p-2 shadow-2xl dark:border-slate-700 dark:bg-slate-950"
+        className="z-300 w-56 rounded-xl border border-slate-200 bg-white p-2 shadow-2xl dark:border-slate-700 dark:bg-slate-950"
       >
         <button
           type="button"
@@ -391,7 +391,6 @@ export function FilterPanel({
   setFilterItems,
   rootFilterGate,
   setRootFilterGate,
-  filterSearch,
   setFilterSearch,
   selectableColumns,
   columnMap,

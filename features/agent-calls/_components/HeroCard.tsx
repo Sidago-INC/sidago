@@ -1,4 +1,4 @@
-import { Lead } from "@/types";
+import type { Lead } from "../_lib/data";
 import { TypeBadge, TimezoneBadge } from "@/components/ui";
 import { Building2, BriefcaseBusiness } from "lucide-react";
 import { LeadStatBox } from "./LeadStatBox";

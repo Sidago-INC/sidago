@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Lead } from "@/types";
+import type { Lead } from "./_lib/data";
 import { Info } from "lucide-react";
 import { CardShell, Modal } from "@/components/ui";
 import { AutoCallingBanner } from "./_components/AutoCallingBanner";

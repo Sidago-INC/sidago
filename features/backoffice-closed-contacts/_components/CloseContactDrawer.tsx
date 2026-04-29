@@ -6,7 +6,6 @@ import {
   DatePickerField,
   Drawer,
   EditableDrawerFooter,
-  EmailLink,
   Select,
   Textarea,
   TextInput,
@@ -36,10 +35,11 @@ import {
   ThumbsDown,
   ThumbsUp,
 } from "lucide-react";
-import { isValidElement, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { OutcomeButton } from "@/features/agent-calls/_components/OutcomeButton";
 import { showSuccessToast } from "@/lib/toast";
+import Revisions from "@/features/backoffice-shared/Revisions";
 
 type ClosedContactDrawerProps = {
   data: ClosedContactRow[];
@@ -153,6 +153,7 @@ export function ClosedContactDrawer({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [copied, setCopied] = useState(false);
+  const [editModeKey, setEditModeKey] = useState<string | null>(null);
   const [formState, setFormState] = useState<{
     key: string;
     value: EditableClosedContactState;
@@ -160,6 +161,7 @@ export function ClosedContactDrawer({
 
   const row = selectedIndex === null ? null : (data[selectedIndex] ?? null);
   const rowKey = row?.email ?? "";
+  const isEditMode = rowKey !== "" && editModeKey === rowKey;
   const form =
     formState?.key === rowKey
       ? formState.value
@@ -223,8 +225,14 @@ export function ClosedContactDrawer({
     setFormState(null);
   };
 
+  const handleEditStart = () => {
+    if (!rowKey) return;
+    setEditModeKey(rowKey);
+  };
+
   const handleSave = () => {
     showSuccessToast("Closed contact changes saved successfully.");
+    setEditModeKey(null);
   };
 
   const handleCopyUrl = async () => {
@@ -338,14 +346,18 @@ export function ClosedContactDrawer({
         </div>
       }
       footer={
-        <EditableDrawerFooter
-          onCancel={onClose}
-          onReset={handleReset}
-          onSave={handleSave}
-        />
+        isEditMode ? (
+          <EditableDrawerFooter
+            onCancel={() => { setEditModeKey(null); onClose(); }}
+            onReset={handleReset}
+            onSave={handleSave}
+          />
+        ) : (
+          <Revisions />
+        )
       }
     >
-      <div className="space-y-5">
+      <div className="space-y-5" onFocus={handleEditStart}>
         {/* Company identity */}
         <DetailCard>
           <div className="flex items-center justify-between">
@@ -532,9 +544,6 @@ function EditableField({
   children: React.ReactNode;
   align?: "row" | "stack";
 }) {
-  const [isEditing, setIsEditing] = useState(false);
-  const preview = getEditablePreview(label, children);
-
   return (
     <div
       className={
@@ -547,70 +556,9 @@ function EditableField({
         {label}
       </p>
       <div className={align === "stack" ? "w-full" : "w-64 max-w-[65%]"}>
-        {isEditing ? (
-          children
-        ) : (
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={() => setIsEditing(true)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                setIsEditing(true);
-              }
-            }}
-            className={`w-full cursor-text rounded border border-gray-300 bg-white text-xs font-semibold text-slate-600 transition focus:border-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-slate-200 ${
-              align === "stack"
-                ? "min-h-24.5 px-3 py-2 text-left whitespace-pre-line"
-                : "min-h-7.5 px-3 py-1.5 text-left truncate"
-            }`}
-          >
-            {preview}
-          </div>
-        )}
+        {children}
       </div>
     </div>
-  );
-}
-
-function getEditablePreview(
-  label: string,
-  children: React.ReactNode,
-): React.ReactNode {
-  if (!isValidElement(children)) return <EmptyPreview label={label} />;
-
-  const props = children.props as {
-    value?: unknown;
-    checked?: boolean;
-    options?: Array<{ label: string; value: string | number }>;
-  };
-
-  if (typeof props.checked === "boolean") {
-    return props.checked ? "Yes" : "No";
-  }
-
-  const value = props.value == null ? "" : String(props.value);
-  if (!value) return <EmptyPreview label={label} />;
-
-  if (label.toLowerCase() === "email") {
-    return <EmailLink value={value} />;
-  }
-
-  const option = props.options?.find((item) => String(item.value) === value);
-  return option?.label ?? value;
-}
-
-function EmptyPreview({
-  label,
-}: {
-  label: string;
-}) {
-  return (
-    <span
-      aria-label={`Empty ${label}`}
-      className="block"
-    />
   );
 }
 
