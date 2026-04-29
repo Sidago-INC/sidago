@@ -1,31 +1,106 @@
 "use client";
 
 import {
+  CheckboxInput,
   CompanySymbolBadge,
+  DatePickerField,
   Drawer,
-  DrawerActionHeader,
   EditableDrawerFooter,
   Select,
   Textarea,
   TextInput,
+  TimezoneBadge,
 } from "@/components/ui";
-import { useEffect, useState } from "react";
-import { AgentSmsRow } from "../_lib/data";
+import { OutcomeButton } from "@/features/agent-calls/_components/OutcomeButton";
+import {
+  contactTypeOptions,
+  leadTypeOptions,
+} from "@/features/backoffice-closed-contacts/_lib/data";
+import {
+  Ban,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Clock3,
+  Link,
+  MessageCircleWarning,
+  MessageSquareText,
+  PhoneCall,
+  PhoneOff,
+  Printer,
+  ThumbsDown,
+  ThumbsUp,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  type AgentSmsRow,
+  smsStatusOptions,
+} from "../_lib/data";
 
 type AgentSmsDrawerProps = {
   row: AgentSmsRow | null;
   currentIndex: number;
   rowCount: number;
   onCancel: () => void;
-  onChange: (field: keyof AgentSmsRow, value: string) => void;
+  onChange: (field: keyof AgentSmsRow, value: string | boolean) => void;
   onNavigate: (index: number) => void;
   onReset: () => void;
   onSave: () => void;
 };
 
-const smsStatusOptions = ["Queued", "Sent", "Delivered", "Replied", "Failed"].map(
-  (value) => ({ label: value, value }),
-);
+const iconClass = "h-4 w-4 stroke-[2]";
+const defaultHistoryCalls = `04/17/2026 - SMS Follow Up - No Answer
+04/13/2026 - SMS Follow Up - Left Voicemail
+04/10/2026 - SMS Follow Up - No Answer`;
+
+const callOutcomes = [
+  {
+    label: "No Answer",
+    icon: PhoneOff,
+    className:
+      "border border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 cursor-pointer",
+  },
+  {
+    label: "Interested",
+    icon: ThumbsUp,
+    className:
+      "bg-emerald-500 text-white shadow-sm shadow-emerald-200 hover:bg-emerald-400 dark:shadow-emerald-900/40 cursor-pointer",
+  },
+  {
+    label: "Bad Number",
+    icon: MessageCircleWarning,
+    className:
+      "bg-blue-500 text-white shadow-sm shadow-blue-200 hover:bg-blue-400 dark:shadow-blue-900/40 cursor-pointer",
+  },
+  {
+    label: "Not Interested",
+    icon: ThumbsDown,
+    className: "bg-slate-600 text-white hover:bg-slate-500 cursor-pointer",
+  },
+  {
+    label: "Left Message",
+    icon: MessageSquareText,
+    className:
+      "border border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 cursor-pointer",
+  },
+  {
+    label: "Call Lead Back",
+    icon: Clock3,
+    className:
+      "bg-rose-500 text-white shadow-sm shadow-rose-200 hover:bg-rose-400 dark:shadow-rose-900/40 cursor-pointer",
+  },
+  {
+    label: "Interested Again",
+    icon: PhoneCall,
+    className:
+      "bg-cyan-500 text-white shadow-sm shadow-cyan-200 hover:bg-cyan-400 dark:shadow-cyan-900/40 cursor-pointer",
+  },
+  {
+    label: "DNC",
+    icon: Ban,
+    className: "bg-slate-700 text-white hover:bg-slate-600 cursor-pointer",
+  },
+] as const;
 
 function escapeHtml(value: string) {
   return value
@@ -35,7 +110,45 @@ function escapeHtml(value: string) {
     .replaceAll('"', "&quot;");
 }
 
-function Field({
+function DetailCard({
+  label,
+  children,
+}: {
+  label?: string | React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded border border-slate-200 bg-slate-50 p-4 shadow-sm dark:border-slate-700 dark:bg-gray-800">
+      {typeof label === "string" && (
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+          {label}
+        </p>
+      )}
+      <div className="space-y-0">{children}</div>
+    </div>
+  );
+}
+
+function Detail({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-start justify-between gap-4 py-1">
+      <p className="shrink-0 text-[10px] uppercase tracking-widest text-slate-400">
+        {label}
+      </p>
+      <p className="truncate text-right text-xs font-semibold text-slate-600 dark:text-slate-200">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function HistoryText({ value }: { value: string }) {
+  return (
+    <span className="block whitespace-pre-line text-left leading-5">{value}</span>
+  );
+}
+
+function EditableField({
   label,
   children,
   align = "row",
@@ -62,19 +175,6 @@ function Field({
   );
 }
 
-function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="rounded border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-950/70">
-      <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-        {label}
-      </dt>
-      <dd className="mt-1 text-sm font-medium text-slate-800 dark:text-slate-100">
-        {value}
-      </dd>
-    </div>
-  );
-}
-
 export function AgentSmsDrawer({
   row,
   currentIndex,
@@ -88,36 +188,57 @@ export function AgentSmsDrawer({
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (!copied) return;
+    if (!copied) {
+      return;
+    }
+
     const timer = window.setTimeout(() => setCopied(false), 1800);
     return () => window.clearTimeout(timer);
   }, [copied]);
 
-  const handleCopyLink = async () => {
-    if (!row || typeof window === "undefined") return;
+  const drawerUrl = useMemo(() => {
+    if (!row || typeof window === "undefined") {
+      return "";
+    }
 
     const url = new URL(window.location.href);
     url.searchParams.set("lead", row.leadId);
-    await navigator.clipboard.writeText(url.toString());
+    return url.toString();
+  }, [row]);
+
+  const historyNotes = row?.smsLog.trim()
+    ? row.smsLog
+    : "No SMS notes recorded yet.";
+
+  const handleCopyUrl = async () => {
+    if (!drawerUrl) {
+      return;
+    }
+
+    await navigator.clipboard.writeText(drawerUrl);
     setCopied(true);
   };
 
   const handlePrint = () => {
-    if (!row || typeof window === "undefined") return;
-
-    const printWindow = window.open("", "_blank", "width=900,height=700");
-    if (!printWindow) return;
+    if (!row || typeof window === "undefined") {
+      return;
+    }
 
     const rows = [
-      ["Lead ID", row.leadId],
-      ["Company Symbol", row.companySymbol],
+      ["Lead", row.lead],
       ["Company Name", row.companyName],
       ["Full Name", row.fullName],
       ["Phone", row.phone],
       ["Email", row.email],
-      ["Brand", row.brand],
+      ["Time zone", row.timezone],
+      ["Contact Type", row.contactType],
+      ["Lead Type Benton", row.bentonLeadType],
       ["SMS Status", row.smsStatus],
-      [`${row.brand} SMS Log`, row.smsLog],
+      ["Call Back Date", row.callBackDate],
+      ["Notes", row.notes],
+      ["SMS Log", row.smsLog],
+      ["Additional Contacts", row.additionalContacts],
+      ["Selected Outcome", row.selectedOutcome],
     ]
       .map(
         ([label, value]) => `
@@ -133,23 +254,24 @@ export function AgentSmsDrawer({
       )
       .join("");
 
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>${escapeHtml(row.leadId)} | SMS Activity</title>
-        </head>
-        <body style="font-family:Arial,sans-serif;padding:24px;color:#0f172a;">
-          <h1>SMS Activity</h1>
-          <p style="margin-bottom:20px;color:#475569;">
-            ${escapeHtml(row.leadId)} | ${escapeHtml(row.fullName)}
-          </p>
-          <table style="width:100%;border-collapse:collapse;">
-            ${rows}
-          </table>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
+    const printWindow = window.open("", "_blank", "width=900,height=700");
+    if (!printWindow) {
+      return;
+    }
+
+    printWindow.document.title = `${escapeHtml(row.companyName)} | SMS Activity`;
+    printWindow.document.body.style.cssText =
+      "font-family:Arial,sans-serif;padding:24px;color:#0f172a;";
+    printWindow.document.body.innerHTML = `
+      <h1>${escapeHtml(row.companyName)}</h1>
+      <p style="margin-bottom:20px;color:#475569;">
+        ${escapeHtml(row.fullName)} | ${escapeHtml(row.email)}
+      </p>
+      <table style="width:100%;border-collapse:collapse;">
+        ${rows}
+      </table>
+    `;
+
     printWindow.focus();
     printWindow.print();
   };
@@ -159,18 +281,64 @@ export function AgentSmsDrawer({
       isOpen={Boolean(row)}
       onClose={onCancel}
       direction="right"
-      size="min(560px, 100vw)"
+      size="560px"
       header={
-        <DrawerActionHeader
-          title={row?.leadId ?? "SMS activity"}
-          copied={copied}
-          canGoPrevious={currentIndex > 0}
-          canGoNext={currentIndex >= 0 && currentIndex < rowCount - 1}
-          onPrevious={() => onNavigate(currentIndex - 1)}
-          onNext={() => onNavigate(currentIndex + 1)}
-          onPrint={handlePrint}
-          onCopyLink={handleCopyLink}
-        />
+        <div className="flex w-full items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onNavigate(currentIndex - 1)}
+              disabled={currentIndex <= 0}
+              className="group flex h-7 w-7 cursor-pointer items-center justify-center rounded border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+            >
+              <ChevronUp
+                className={`${iconClass} transition group-hover:-translate-y-0.5`}
+              />
+            </button>
+            <button
+              type="button"
+              onClick={() => onNavigate(currentIndex + 1)}
+              disabled={currentIndex < 0 || currentIndex >= rowCount - 1}
+              className="group flex h-7 w-7 cursor-pointer items-center justify-center rounded border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+            >
+              <ChevronDown
+                className={`${iconClass} transition group-hover:translate-y-0.5`}
+              />
+            </button>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                {row?.lead ?? row?.leadId ?? "SMS activity"}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handlePrint}
+              title="Print"
+              className="group flex h-7 w-7 cursor-pointer items-center justify-center rounded border border-slate-200 text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+            >
+              <Printer
+                className={`${iconClass} transition group-hover:scale-110`}
+              />
+            </button>
+            <button
+              type="button"
+              onClick={handleCopyUrl}
+              title={copied ? "Copied!" : "Copy URL"}
+              className="group flex h-7 w-7 cursor-pointer items-center justify-center rounded border border-slate-200 text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+            >
+              {copied ? (
+                <Check className={`${iconClass} text-emerald-500`} />
+              ) : (
+                <Link
+                  className={`${iconClass} transition group-hover:scale-110`}
+                />
+              )}
+            </button>
+          </div>
+        </div>
       }
       footer={
         <EditableDrawerFooter
@@ -180,60 +348,152 @@ export function AgentSmsDrawer({
         />
       }
     >
-      {row && (
-        <dl className="grid gap-3">
-          <DetailRow label="Lead ID" value={row.leadId} />
-          <DetailRow
-            label="Company Symbol"
-            value={
-              <CompanySymbolBadge
-                symbol={row.companySymbol}
-                index={0}
+      {row ? (
+        <div className="space-y-5">
+          <DetailCard>
+            <div className="flex items-center justify-between">
+              <div className="flex min-w-0 items-center gap-3">
+                <CompanySymbolBadge
+                  symbol={row.companySymbol}
+                  index={currentIndex >= 0 ? currentIndex : 0}
+                  className="rounded"
+                />
+                <div className="min-w-0">
+                  <p className="text-[10px] uppercase tracking-widest text-slate-400">
+                    Company
+                  </p>
+                  <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-200">
+                    {row.companyName}
+                  </p>
+                </div>
+              </div>
+              <TimezoneBadge
+                timezone={row.timezone}
+                index={currentIndex >= 0 ? currentIndex : 0}
               />
-            }
-          />
-          <DetailRow label="Company Name" value={row.companyName} />
-          <Field label="Full Name">
-            <TextInput
-              value={row.fullName}
-              onChange={(event) => onChange("fullName", event.target.value)}
-              className="text-sm font-medium"
+            </div>
+          </DetailCard>
+
+          <DetailCard label="Personal Details">
+            <EditableField label="Full Name">
+              <TextInput
+                value={row.fullName}
+                onChange={(event) => onChange("fullName", event.target.value)}
+                className="text-xs font-semibold"
+              />
+            </EditableField>
+            <EditableField label="Phone">
+              <TextInput
+                value={row.phone}
+                onChange={(event) => onChange("phone", event.target.value)}
+                className="text-xs font-semibold"
+              />
+            </EditableField>
+            <EditableField label="Email">
+              <TextInput
+                type="email"
+                value={row.email}
+                onChange={(event) => onChange("email", event.target.value)}
+                className="text-xs font-semibold"
+              />
+            </EditableField>
+          </DetailCard>
+
+          <DetailCard label="Lead Details">
+            <EditableField label="Contact Type">
+              <Select
+                value={row.contactType}
+                onChange={(value) => onChange("contactType", String(value))}
+                options={contactTypeOptions.map((value) => ({
+                  label: value,
+                  value,
+                }))}
+                className="text-xs font-semibold"
+              />
+            </EditableField>
+            <EditableField label="Lead Type Benton">
+              <Select
+                value={row.bentonLeadType}
+                onChange={(value) => onChange("bentonLeadType", String(value))}
+                options={leadTypeOptions.map((value) => ({
+                  label: value,
+                  value,
+                }))}
+                className="text-xs font-semibold"
+              />
+            </EditableField>
+            <EditableField label="SMS Status">
+              <Select
+                value={row.smsStatus}
+                onChange={(value) => onChange("smsStatus", String(value))}
+                options={smsStatusOptions}
+                className="text-xs font-semibold"
+              />
+            </EditableField>
+          </DetailCard>
+
+          <DetailCard label="Notes">
+            <EditableField label="Notes" align="stack">
+              <Textarea
+                value={row.notes}
+                onChange={(event) => onChange("notes", event.target.value)}
+                className="text-xs font-semibold leading-5"
+                placeholder="Add notes"
+              />
+            </EditableField>
+            <EditableField label="Doesn't Work Anymore In The Company">
+              <CheckboxInput
+                checked={row.notWorked}
+                onChange={(event) => onChange("notWorked", event.target.checked)}
+                labelClassName="justify-end"
+              />
+            </EditableField>
+            <EditableField label="Call Back Date">
+              <DatePickerField
+                value={row.callBackDate}
+                onChange={(value) => onChange("callBackDate", value)}
+                className="text-xs font-semibold"
+              />
+            </EditableField>
+          </DetailCard>
+
+          <DetailCard label="History">
+            <Detail
+              label="History Calls"
+              value={<HistoryText value={defaultHistoryCalls} />}
             />
-          </Field>
-          <Field label="Phone">
-            <TextInput
-              value={row.phone}
-              onChange={(event) => onChange("phone", event.target.value)}
-              className="text-sm font-medium"
+            <Detail
+              label="History Notes"
+              value={<HistoryText value={historyNotes} />}
             />
-          </Field>
-          <Field label="Email">
-            <TextInput
-              type="email"
-              value={row.email}
-              onChange={(event) => onChange("email", event.target.value)}
-              className="text-sm font-medium"
+          </DetailCard>
+
+          <DetailCard label="Additional Contacts">
+            <Detail
+              label="Contacts"
+              value={
+                <HistoryText
+                  value={row.additionalContacts || "No additional contacts."}
+                />
+              }
             />
-          </Field>
-          <DetailRow label="Brand" value={row.brand} />
-          <Field label="SMS Status">
-            <Select
-              value={row.smsStatus}
-              onChange={(value) => onChange("smsStatus", String(value))}
-              options={smsStatusOptions}
-              className="text-sm font-medium"
-            />
-          </Field>
-          <Field label={`${row.brand} SMS Log`} align="stack">
-            <Textarea
-              value={row.smsLog}
-              onChange={(event) => onChange("smsLog", event.target.value)}
-              rows={4}
-              className="text-sm font-medium leading-5"
-            />
-          </Field>
-        </dl>
-      )}
+          </DetailCard>
+
+          <DetailCard label="Call Outcome">
+            <div className="grid grid-cols-2 gap-2.5">
+              {callOutcomes.map((outcome) => (
+                <OutcomeButton
+                  key={outcome.label}
+                  label={outcome.label}
+                  icon={outcome.icon}
+                  onClick={() => onChange("selectedOutcome", outcome.label)}
+                  className={outcome.className}
+                />
+              ))}
+            </div>
+          </DetailCard>
+        </div>
+      ) : null}
     </Drawer>
   );
 }

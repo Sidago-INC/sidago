@@ -19,10 +19,7 @@ import {
   getColumnType,
   isFilterConditionActive,
   normalizeDateValue,
-  operatorNeedsValue,
   parseDateRangeFilterValue,
-  removeFilterItem,
-  updateFilterCondition,
   updateFilterGroup,
 } from "./utils";
 

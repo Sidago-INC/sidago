@@ -1,37 +1,53 @@
 "use client";
 
 import { CompanySymbolBadge, Table } from "@/components/ui";
-import { Column } from "@/components/ui/Table";
+import type { Column } from "@/components/ui/Table";
 import { showSuccessToast } from "@/lib/toast";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
+import {
+  AgentSmsEditableTrigger,
+  AgentSmsInlineTextCell,
+  AgentSmsReadText,
+  AgentSmsStatusEditor,
+} from "./AgentSmsInlineEditors";
 import { AgentSmsDrawer } from "./AgentSmsDrawer";
-import { AgentSmsRow, getSmsRowsForAgent } from "../_lib/data";
+import { AgentSmsStatusBadge } from "./AgentSmsStatusBadge";
+import { SmsLogButton } from "./SmsLogButton";
+import {
+  type AgentSmsRow,
+  getSmsRowsForAgent,
+  smsStatusOptions,
+} from "../_lib/data";
 
 type AgentSmsProps = {
   agentName: string;
   agentSlug: string;
 };
 
-function SmsStatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    Queued:
-      "border-amber-200 bg-amber-100 text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300",
-    Sent: "border-sky-200 bg-sky-100 text-sky-700 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-300",
-    Delivered:
-      "border-emerald-200 bg-emerald-100 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300",
-    Replied:
-      "border-violet-200 bg-violet-100 text-violet-700 dark:border-violet-800 dark:bg-violet-950/40 dark:text-violet-300",
-    Failed:
-      "border-rose-200 bg-rose-100 text-rose-700 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-300",
-  };
+type DrawerState = {
+  original: AgentSmsRow | null;
+  draft: AgentSmsRow | null;
+};
 
+function LeadButton({
+  leadId,
+  onOpen,
+}: {
+  leadId: string;
+  onOpen: () => void;
+}) {
   return (
-    <span
-      className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${styles[status]}`}
+    <button
+      type="button"
+      onClick={(event) => {
+        event.stopPropagation();
+        onOpen();
+      }}
+      className="cursor-pointer text-left text-sm font-medium text-slate-700 transition hover:text-slate-900 hover:underline dark:text-slate-200 dark:hover:text-white"
     >
-      {status}
-    </span>
+      {leadId}
+    </button>
   );
 }
 
@@ -40,12 +56,11 @@ export function AgentSms({ agentName, agentSlug }: AgentSmsProps) {
   const [rows, setRows] = useState<AgentSmsRow[]>(() =>
     getSmsRowsForAgent(agentSlug),
   );
-  const [drawerState, setDrawerState] = useState<{
-    original: AgentSmsRow | null;
-    draft: AgentSmsRow | null;
-  }>(() => {
+  const [editingRowId, setEditingRowId] = useState<string | null>(null);
+  const [drawerState, setDrawerState] = useState<DrawerState>(() => {
+    const initialRows = getSmsRowsForAgent(agentSlug);
     const leadParam = searchParams.get("lead");
-    const row = getSmsRowsForAgent(agentSlug).find(
+    const row = initialRows.find(
       (item) =>
         item.leadId === leadParam ||
         item.email === leadParam ||
@@ -54,18 +69,58 @@ export function AgentSms({ agentName, agentSlug }: AgentSmsProps) {
 
     return row
       ? { original: { ...row }, draft: { ...row } }
-      : {
-          original: null,
-          draft: null,
-        };
+      : { original: null, draft: null };
   });
-  const smsLogTitle = rows[0]?.brand
-    ? `SMS Log (${rows[0].brand})`
-    : "SMS Log";
+
+  const updateRow = (
+    rowId: string,
+    updater: (currentRow: AgentSmsRow) => AgentSmsRow,
+  ) => {
+    setRows((currentRows) =>
+      currentRows.map((row) => (row.id === rowId ? updater(row) : row)),
+    );
+  };
+
+  const openDrawer = (row: AgentSmsRow) => {
+    setDrawerState({
+      original: { ...row },
+      draft: { ...row },
+    });
+  };
+
+  const openDrawerAtIndex = (index: number) => {
+    const row = rows[index];
+
+    if (!row) {
+      return;
+    }
+
+    openDrawer(row);
+  };
+
+  const updateDraft = (field: keyof AgentSmsRow, value: string | boolean) => {
+    setDrawerState((current) =>
+      current.draft
+        ? {
+            ...current,
+            draft: {
+              ...current.draft,
+              [field]: value,
+            },
+          }
+        : current,
+    );
+  };
 
   const columns = useMemo<Column<AgentSmsRow>[]>(
     () => [
-      { title: "Lead ID", key: "leadId" },
+      {
+        title: "Lead ID",
+        key: "leadId",
+        render: (row) => (
+          <LeadButton leadId={row.leadId} onOpen={() => openDrawer(row)} />
+        ),
+      },
       {
         title: "Company Symbol",
         key: "companySymbol",
@@ -76,25 +131,129 @@ export function AgentSms({ agentName, agentSlug }: AgentSmsProps) {
           />
         ),
       },
-      { title: "Full Name", key: "fullName" },
+      {
+        title: "Full Name",
+        key: "fullName",
+        render: (row) => (
+          editingRowId === row.id ? (
+            <AgentSmsInlineTextCell
+              value={row.fullName}
+              placeholder="Full name"
+              onChange={(value) =>
+                updateRow(row.id, (currentRow) => ({
+                  ...currentRow,
+                  fullName: value,
+                }))
+              }
+            />
+          ) : (
+            <AgentSmsEditableTrigger onClick={() => setEditingRowId(row.id)}>
+              <AgentSmsReadText value={row.fullName} />
+            </AgentSmsEditableTrigger>
+          )
+        ),
+      },
+      {
+        title: "Phone",
+        key: "phone",
+        render: (row) => (
+          editingRowId === row.id ? (
+            <AgentSmsInlineTextCell
+              value={row.phone}
+              placeholder="Phone"
+              onChange={(value) =>
+                updateRow(row.id, (currentRow) => ({
+                  ...currentRow,
+                  phone: value,
+                }))
+              }
+            />
+          ) : (
+            <AgentSmsEditableTrigger onClick={() => setEditingRowId(row.id)}>
+              <AgentSmsReadText value={row.phone} />
+            </AgentSmsEditableTrigger>
+          )
+        ),
+      },
       {
         title: "SMS Status",
         key: "smsStatus",
-        render: (row) => <SmsStatusBadge status={row.smsStatus} />,
+        render: (row) => (
+          editingRowId === row.id ? (
+            <AgentSmsStatusEditor
+              value={row.smsStatus}
+              options={smsStatusOptions}
+              onChange={(value) =>
+                updateRow(row.id, (currentRow) => ({
+                  ...currentRow,
+                  smsStatus: value,
+                }))
+              }
+            />
+          ) : (
+            <AgentSmsEditableTrigger onClick={() => setEditingRowId(row.id)}>
+              <div className="px-2.5 py-1.5">
+                <AgentSmsStatusBadge status={row.smsStatus} />
+              </div>
+            </AgentSmsEditableTrigger>
+          )
+        ),
       },
-      { title: smsLogTitle, key: "smsLog" },
+      {
+        title: "SMS Log",
+        key: "smsLogged",
+        render: (row) => (
+          <SmsLogButton
+            checked={row.smsLogged}
+            onToggle={() =>
+              updateRow(row.id, (currentRow) => ({
+                ...currentRow,
+                smsLogged: !currentRow.smsLogged,
+              }))
+            }
+          />
+        ),
+      },
     ],
-    [rows, smsLogTitle],
+    [editingRowId, rows],
   );
 
-  const openDrawer = (row: AgentSmsRow) => {
-    setDrawerState({ original: { ...row }, draft: { ...row } });
+  const closeDrawer = () => {
+    setDrawerState({ original: null, draft: null });
   };
 
-  const openDrawerAtIndex = (index: number) => {
-    const row = rows[index];
-    if (!row) return;
-    openDrawer(row);
+  const resetDraft = () => {
+    setDrawerState((current) => ({
+      ...current,
+      draft: current.original ? { ...current.original } : null,
+    }));
+  };
+
+  const saveDraft = () => {
+    if (!drawerState.draft) {
+      return;
+    }
+
+    const nextRow: AgentSmsRow = {
+      ...drawerState.draft,
+      fullName: drawerState.draft.fullName.trim(),
+      phone: drawerState.draft.phone.trim(),
+      email: drawerState.draft.email.trim(),
+      notes: drawerState.draft.notes.trim(),
+      smsLog: drawerState.draft.smsLog.trim(),
+      additionalContacts: drawerState.draft.additionalContacts.trim(),
+      selectedOutcome: drawerState.draft.selectedOutcome.trim(),
+      smsLogged: drawerState.draft.smsLogged,
+    };
+
+    setRows((current) =>
+      current.map((row) => (row.id === nextRow.id ? nextRow : row)),
+    );
+    showSuccessToast("SMS activity updated successfully.");
+    setDrawerState({
+      original: nextRow,
+      draft: nextRow,
+    });
   };
 
   return (
@@ -111,41 +270,11 @@ export function AgentSms({ agentName, agentSlug }: AgentSmsProps) {
         row={drawerState.draft}
         currentIndex={rows.findIndex((row) => row.id === drawerState.draft?.id)}
         rowCount={rows.length}
-        onCancel={() => setDrawerState({ original: null, draft: null })}
-        onChange={(field, value) =>
-          setDrawerState((current) =>
-            current.draft
-              ? {
-                  ...current,
-                  draft: { ...current.draft, [field]: value },
-                }
-              : current,
-          )
-        }
+        onCancel={closeDrawer}
+        onChange={updateDraft}
         onNavigate={openDrawerAtIndex}
-        onReset={() =>
-          setDrawerState((current) => ({
-            ...current,
-            draft: current.original ? { ...current.original } : null,
-          }))
-        }
-        onSave={() => {
-          if (!drawerState.draft) return;
-
-          const nextRow = {
-            ...drawerState.draft,
-            fullName: drawerState.draft.fullName.trim(),
-            phone: drawerState.draft.phone.trim(),
-            email: drawerState.draft.email.trim(),
-            smsLog: drawerState.draft.smsLog.trim(),
-          };
-
-          setRows((current) =>
-            current.map((row) => (row.id === nextRow.id ? nextRow : row)),
-          );
-          showSuccessToast("SMS activity updated successfully.");
-          setDrawerState({ original: nextRow, draft: nextRow });
-        }}
+        onReset={resetDraft}
+        onSave={saveDraft}
       />
     </div>
   );
