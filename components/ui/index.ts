@@ -38,3 +38,4 @@ export { Wave } from "./Spinner";
 export { Table } from "./Table";
 export { Textarea } from "./Textarea";
 export { TextInput } from "./TextInput";
+export { BulkImportPage } from "./bulk-import/BulkImportPage";

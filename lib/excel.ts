@@ -17,6 +17,29 @@ type MatrixSheet = {
 
 type WorkbookSheet = ObjectSheet | MatrixSheet;
 
+type WorksheetRow = Record<string, string>;
+
+type CellValueWithText = Extract<CellValue, { text: string }>;
+type CellValueWithHyperlink = Extract<CellValue, { hyperlink: string }>;
+type CellValueWithFormula = Extract<CellValue, { formula: unknown; result?: unknown }>;
+type CellValueWithRichText = Extract<CellValue, { richText: Array<{ text: string }> }>;
+
+function hasRichText(value: CellValue): value is CellValueWithRichText {
+  return typeof value === "object" && value !== null && "richText" in value;
+}
+
+function hasText(value: CellValue): value is CellValueWithText {
+  return typeof value === "object" && value !== null && "text" in value;
+}
+
+function hasHyperlink(value: CellValue): value is CellValueWithHyperlink {
+  return typeof value === "object" && value !== null && "hyperlink" in value;
+}
+
+function hasFormula(value: CellValue): value is CellValueWithFormula {
+  return typeof value === "object" && value !== null && "formula" in value;
+}
+
 function cellValueToString(value: CellValue | undefined | null): string {
   if (value == null) {
     return "";
@@ -30,19 +53,19 @@ function cellValueToString(value: CellValue | undefined | null): string {
     return value.toISOString();
   }
 
-  if (Array.isArray(value.richText)) {
+  if (hasRichText(value) && Array.isArray(value.richText)) {
     return value.richText.map((part) => part.text).join("").trim();
   }
 
-  if ("text" in value && typeof value.text === "string") {
+  if (hasText(value) && typeof value.text === "string") {
     return value.text.trim();
   }
 
-  if ("hyperlink" in value && typeof value.hyperlink === "string") {
+  if (hasHyperlink(value) && typeof value.hyperlink === "string") {
     return value.hyperlink.trim();
   }
 
-  if ("formula" in value) {
+  if (hasFormula(value)) {
     if (value.result == null) {
       return "";
     }
@@ -117,20 +140,24 @@ export async function readFirstWorksheet(file: File) {
     throw new Error("The uploaded workbook does not contain any sheets.");
   }
 
-  const headerRow = worksheet
-    .getRow(1)
-    .values
-    .slice(1)
-    .map((value) => cellValueToString(value as CellValue));
-
-  const rows: Record<string, unknown>[] = [];
+  const headerSourceRow = worksheet.getRow(1);
+  const lastColumnIndex = Math.max(
+    headerSourceRow.cellCount,
+    headerSourceRow.actualCellCount,
+  );
+  const headerColumns = Array.from({ length: lastColumnIndex }, (_, index) =>
+    cellValueToString(headerSourceRow.getCell(index + 1).value).trim(),
+  );
+  const rows: WorksheetRow[] = [];
 
   worksheet.eachRow((row, rowNumber) => {
     if (rowNumber === 1) {
       return;
     }
 
-    const values = row.values.slice(1).map((value) => cellValueToString(value as CellValue));
+    const values = headerColumns.map((_, index) =>
+      cellValueToString(row.getCell(index + 1).value),
+    );
     const hasContent = values.some((value) => value !== "");
 
     if (!hasContent) {
@@ -139,10 +166,12 @@ export async function readFirstWorksheet(file: File) {
 
     rows.push(
       Object.fromEntries(
-        headerRow.map((header, index) => [header, values[index] ?? ""]),
+        headerColumns
+          .map((header, index) => [header, values[index] ?? ""] as const)
+          .filter(([header]) => header !== ""),
       ),
     );
   });
 
-  return { headerRow, rows };
+  return { headerRow: headerColumns.filter(Boolean), rows };
 }
