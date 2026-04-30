@@ -1,9 +1,8 @@
-import RoleDashboardRedirect from "./components/RoleDashboardRedirect";
+import DashboardSwitch from "@/features/dashboard/_components/DashboardSwitch";
 
 export const metadata = {
   title: "Dashboard | Sidago CRM",
-  description:
-    "Sidago CRM dashboard routing page that sends signed-in users to the correct dashboard for their role.",
+  description: "Dashboard for Sidago CRM.",
   robots: {
     index: false,
     follow: false,
@@ -11,5 +10,5 @@ export const metadata = {
 };
 
 export default function DashboardPage() {
-  return <RoleDashboardRedirect />;
+  return <DashboardSwitch />;
 }

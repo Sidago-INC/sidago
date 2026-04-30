@@ -1,10 +1,14 @@
 "use client";
-import React, { TextareaHTMLAttributes, useId } from "react";
+import { Textarea as HeadlessTextarea } from "@headlessui/react";
+import clsx from "clsx";
+import { TextareaHTMLAttributes, useId } from "react";
 
 export function Textarea({
   label,
   error,
-  className = "",
+  className,
+  wrapperClassName,
+  labelClassName,
   id,
   rows = 4,
   ...props
@@ -13,19 +17,21 @@ export function Textarea({
   const textareaId = id || generatedId;
 
   return (
-    <div className="flex flex-col gap-1 w-full">
+    <div className={clsx("flex w-full flex-col gap-1", wrapperClassName)}>
       {label && (
-        <label htmlFor={textareaId} className="text-sm font-medium">
+        <label htmlFor={textareaId} className={clsx("text-sm font-medium", labelClassName)}>
           {label}
         </label>
       )}
 
-      <textarea
+      <HeadlessTextarea
         id={textareaId}
         rows={rows}
-        className={`px-4 py-2 rounded border resize-none focus:outline-none transition focus:ring-0
-        ${error ? "border-red-500" : "border-gray-300"}
-        ${className}`}
+        className={clsx(
+          "resize-none rounded border bg-white px-4 py-2 text-slate-700 transition focus:border-indigo-500 focus:outline-none dark:bg-gray-800 dark:text-slate-200 dark:focus:border-indigo-400",
+          error ? "border-red-500" : "border-gray-300 dark:border-gray-600",
+          className,
+        )}
         {...props}
       />
 
@@ -37,4 +43,6 @@ export function Textarea({
 type Props = TextareaHTMLAttributes<HTMLTextAreaElement> & {
   label?: string;
   error?: string;
+  wrapperClassName?: string;
+  labelClassName?: string;
 };

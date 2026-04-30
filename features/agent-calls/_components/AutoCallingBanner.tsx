@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui";
 import { Lead } from "@/types";
 import { CircleMinus, PlayCircle } from "lucide-react";
+import { PingDot } from "./PingDot";
 
 type AutoCallingBannerProps = {
   isAutoCalling: boolean;
@@ -27,12 +28,7 @@ export function AutoCallingBanner({
     >
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4">
         <div className="flex items-center gap-3">
-          {isAutoCalling && (
-            <span className="relative flex h-3 w-3">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
-              <span className="relative inline-flex h-3 w-3 rounded-full bg-white" />
-            </span>
-          )}
+          {isAutoCalling && <PingDot />}
           <span
             className={`text-sm font-semibold ${
               isAutoCalling ? "text-white" : "text-slate-600 dark:text-gray-300"

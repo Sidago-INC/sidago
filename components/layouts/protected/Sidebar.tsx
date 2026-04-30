@@ -1,46 +1,87 @@
 "use client";
 
 import { motion } from "framer-motion";
-import {
-  PanelLeftClose,
-  PanelLeftOpen,
-  ShieldCheck,
-  UserCog,
-} from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen, ShieldCheck } from "lucide-react";
+import { useState, type PointerEvent } from "react";
 import { SidebarItem } from "./SidebarItem";
 import { Button } from "@/components/ui";
 import { NavigationItem } from "@/lib/navigation";
 import { useAuth } from "@/providers/AuthProvider";
+import { usePathname } from "next/navigation";
+import { SidebarRoleBadge } from "./SidebarRoleBadge";
 import clsx from "clsx";
 
 export type Props = {
   isCollapsed: boolean;
   setIsCollapsed: (value: boolean) => void;
+  sidebarWidth: number;
+  setSidebarWidth: (value: number) => void;
   navigations: NavigationItem[];
 };
+
+const COLLAPSED_WIDTH = 80;
+const MIN_SIDEBAR_WIDTH = 280;
+const MAX_SIDEBAR_WIDTH = 440;
+
+const clampSidebarWidth = (width: number) =>
+  Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, width));
 
 export const Sidebar = ({
   isCollapsed,
   setIsCollapsed,
+  sidebarWidth,
+  setSidebarWidth,
   navigations,
 }: Props) => {
   const { user } = useAuth();
-  const roleLabel = user?.role
-    ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
-    : "Unknown";
+  const pathname = usePathname();
+  const [isResizing, setIsResizing] = useState(false);
+  const currentWidth = isCollapsed ? COLLAPSED_WIDTH : sidebarWidth;
+
+  const handleResizeStart = (event: PointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setIsResizing(true);
+    setIsCollapsed(false);
+    setSidebarWidth(clampSidebarWidth(event.clientX));
+  };
+
+  const handleResizeMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (!isResizing) {
+      return;
+    }
+
+    setSidebarWidth(clampSidebarWidth(event.clientX));
+  };
+
+  const handleResizeEnd = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    setIsResizing(false);
+  };
 
   return (
     <motion.aside
       initial={false}
       animate={{
-        width: isCollapsed ? 80 : 280,
-        transition: { type: "spring", stiffness: 300, damping: 30 },
+        width: currentWidth,
+        transition: isResizing
+          ? { duration: 0 }
+          : { type: "spring", stiffness: 300, damping: 30 },
       }}
-      className="fixed inset-y-0 left-0 z-50 hidden flex-col border-r border-slate-200/80 bg-white/90 shadow-xl shadow-indigo-100/50 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/85 dark:shadow-black/25 md:flex"
+      className={clsx(
+        "fixed inset-y-0 left-0 z-50 hidden flex-col overflow-visible border-r border-slate-200/80 bg-white/90 shadow-xl shadow-indigo-100/50 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/85 dark:shadow-black/25 md:flex",
+        isResizing && "select-none",
+      )}
     >
       <div className="relative flex items-center justify-between overflow-hidden p-4">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="bg-indigo-600 p-1.5 rounded text-white shrink-0">
+          <div className={clsx(
+            "bg-indigo-600 p-1.5 rounded text-white shrink-0",
+            isCollapsed ? "opacity-0" : "opacity-100"
+          )}>
             <ShieldCheck size={18} />
           </div>
 
@@ -58,10 +99,10 @@ export const Sidebar = ({
           type="button"
           onClick={() => setIsCollapsed(!isCollapsed)}
           className={`
-      absolute right-3 top-1/2 -translate-y-1/2
+      absolute top-1/2 -translate-y-1/2
       flex h-8 w-8 items-center justify-center
       cursor-pointer rounded transition hover:bg-slate-100 dark:hover:bg-slate-800
-      ${isCollapsed ? "z-50 border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900" : "z-10 text-slate-600 dark:text-slate-300"}
+      ${isCollapsed ? "right-5 z-50 border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900" : "right-3 z-10 text-slate-600 dark:text-slate-300"}
     `}
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
@@ -73,52 +114,44 @@ export const Sidebar = ({
         </Button>
       </div>
 
-      <nav className="mb-10 mt-4 flex-1 overflow-y-auto overflow-x-hidden px-3">
+      <nav className="mb-10 mt-4 flex-1 overflow-y-auto overflow-x-visible px-3">
         {navigations.map((item) => (
           <SidebarItem
             key={item.href}
             item={item}
             isCollapsed={isCollapsed}
-            isActive={false}
+            isActive={pathname === item.href}
           />
         ))}
       </nav>
 
       <div className="border-t border-slate-200/80 p-3 dark:border-slate-600">
-        <div
-          className={`flex rounded-2xl border border-indigo-100 bg-indigo-50/80 text-indigo-700 dark:border-indigo-900/60 dark:bg-indigo-950/50 dark:text-indigo-300 ${
-            isCollapsed
-              ? "flex-col items-center justify-center gap-2 px-2 py-3 text-center"
-              : "items-center gap-3 px-3 py-2.5"
-          }`}
-          title={`Role: ${roleLabel}`}
-        >
-          <div
-            className={clsx(
-              "flex shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white",
-              isCollapsed ? "h-6 w-6" : "h-9 w-9",
-            )}
-          >
-            <UserCog size={18} />
-          </div>
+        <SidebarRoleBadge role={user?.role} compact={isCollapsed} />
+      </div>
 
-          <div className={`min-w-0 ${isCollapsed ? "w-full" : ""}`}>
-            {!isCollapsed && (
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-400">
-                User Role
-              </p>
-            )}
-            <p
-              className={`font-bold overflow-hidden text-ellipsis whitespace-nowrap ${
-                isCollapsed
-                  ? "w-10 text-[11px] leading-tight"
-                  : "truncate text-sm"
-              }`}
-            >
-              {roleLabel}
-            </p>
-          </div>
-        </div>
+      <div
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize sidebar"
+        aria-valuemin={MIN_SIDEBAR_WIDTH}
+        aria-valuemax={MAX_SIDEBAR_WIDTH}
+        aria-valuenow={currentWidth}
+        className={clsx(
+          "group absolute inset-y-0 -right-2 z-50 w-4 cursor-ew-resize touch-none",
+          isCollapsed && "cursor-e-resize",
+        )}
+        onPointerDown={handleResizeStart}
+        onPointerMove={handleResizeMove}
+        onPointerUp={handleResizeEnd}
+        onPointerCancel={handleResizeEnd}
+      >
+        <div
+          className={clsx(
+            "absolute right-1.5 top-1/2 h-16 w-1 -translate-y-1/2 rounded-full bg-slate-300 opacity-0 transition-opacity dark:bg-slate-600",
+            "group-hover:opacity-100 group-active:opacity-100",
+            isResizing && "opacity-100",
+          )}
+        />
       </div>
     </motion.aside>
   );

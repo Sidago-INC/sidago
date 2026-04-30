@@ -1,5 +1,4 @@
 import {
-  BarChart,
   Clock,
   Flame,
   LayoutDashboard,
@@ -7,7 +6,6 @@ import {
   Package,
   Phone,
   RotateCcw,
-  Trophy,
   type LucideIcon,
 } from "lucide-react";
 
@@ -19,98 +17,88 @@ export type NavigationItem = {
   icon: LucideIcon;
 };
 
-const agentNavigation: NavigationItem[] = [
+export const agentNavigation: NavigationItem[] = [
   {
     label: "Dashboard",
-    href: "/agent/dashboard",
+    href: "/dashboard",
     icon: LayoutDashboard,
   },
   {
     label: "Calls",
-    href: "/agent/calls",
+    href: "/calls",
     icon: Phone,
   },
 ];
 
-const backofficeNavigation: NavigationItem[] = [
+export const backofficeNavigation: NavigationItem[] = [
   {
     label: "Dashboard",
-    href: "/manager/dashboard",
+    href: "/dashboard",
     icon: LayoutDashboard,
   },
   {
     label: "Currently Hot Leads - SVG",
-    href: "/backoffice/currently-hot-leads-svg",
+    href: "/currently-hot-leads-svg",
     icon: Flame,
   },
   {
     label: "Currently Hot Leads - 95RM",
-    href: "/backoffice/currently-hot-leads-95rm",
+    href: "/currently-hot-leads-95rm",
     icon: Flame,
   },
   {
     label: "Currently Hot Leads - Benton",
-    href: "/backoffice/currently-hot-leads-benton",
+    href: "/currently-hot-leads-benton",
     icon: Flame,
   },
   {
     label: "Recent Interest - SVG",
-    href: "/backoffice/recent-interest-svg",
+    href: "/recent-interest-svg",
     icon: Clock,
   },
   {
     label: "Recent Interest - 95RM",
-    href: "/backoffice/recent-interest-95rm",
+    href: "/recent-interest-95rm",
     icon: Clock,
   },
   {
     label: "Recent Interest - Benton",
-    href: "/backoffice/recent-interest-benton",
+    href: "/recent-interest-benton",
     icon: Clock,
   },
   {
     label: "Unassigned Hot Leads - SVG",
-    href: "/backoffice/unassigned-hot-leads-svg",
+    href: "/unassigned-hot-leads-svg",
     icon: Package,
   },
   {
     label: "Unassigned Hot Leads - 95RM",
-    href: "/backoffice/unassigned-hot-leads-95rm",
+    href: "/unassigned-hot-leads-95rm",
     icon: Package,
   },
   {
     label: "Unassigned Hot Leads - Benton",
-    href: "/backoffice/unassigned-hot-leads-benton",
+    href: "/unassigned-hot-leads-benton",
     icon: Package,
   },
   {
     label: "Ever Been Hot - SVG",
-    href: "/backoffice/ever-been-hot-svg",
+    href: "/ever-been-hot-svg",
     icon: RotateCcw,
   },
   {
     label: "Ever Been Hot - 95RM",
-    href: "/backoffice/ever-been-hot-95rm",
+    href: "/ever-been-hot-95rm",
     icon: RotateCcw,
   },
   {
     label: "Ever Been Hot - Benton",
-    href: "/backoffice/ever-been-hot-benton",
+    href: "/ever-been-hot-benton",
     icon: RotateCcw,
   },
   {
-    label: "Leaderboard",
-    href: "/backoffice/leaderboard",
-    icon: Trophy,
-  },
-  {
-    label: "Monthly Stats. & Points",
-    href: "/backoffice/monthly-stats-points",
-    icon: BarChart,
-  },
-  {
     label: "Closed Contacts",
-    href: "/backoffice/closed-contacts",
+    href: "/closed-contacts",
     icon: Lock,
   },
 ];
@@ -120,11 +108,11 @@ const navigationByRole: Record<UserRole, NavigationItem[]> = {
   admin: [
     {
       label: "Dashboard",
-      href: "/admin/dashboard",
+      href: "/dashboard",
       icon: LayoutDashboard,
     },
-    ...agentNavigation.filter((item) => item.href !== "/agent/dashboard"),
-    ...backofficeNavigation.filter((item) => item.href !== "/manager/dashboard"),
+    ...agentNavigation.filter((item) => item.href !== "/dashboard"),
+    ...backofficeNavigation.filter((item) => item.href !== "/dashboard"),
   ],
   backoffice: backofficeNavigation,
 };

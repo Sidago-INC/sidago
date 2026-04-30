@@ -1,9 +1,10 @@
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Mail, UserRound } from "lucide-react";
 import { CallsFormState } from "@/types";
 
-type IdentityCardProps = {
+type Props = {
   form: CallsFormState;
   leadName: string;
   onChange: (patch: Partial<CallsFormState>) => void;
@@ -17,7 +18,7 @@ export function IdentityCard({
   onChange,
   leadTypeOptions,
   contactTypeOptions,
-}: IdentityCardProps) {
+}: Props) {
   const leadTypeSelectOptions = leadTypeOptions.map((option) => ({
     label: option,
     value: option,
@@ -29,9 +30,8 @@ export function IdentityCard({
 
   return (
     <div className="space-y-4">
-      <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-gray-500">
-        Identity
-      </p>
+      <SectionLabel>Identity</SectionLabel>
+
       <div className="space-y-3">
         <div>
           <p className="mb-0.5 text-xs text-slate-400 dark:text-gray-500">
@@ -51,7 +51,7 @@ export function IdentityCard({
             value={form.leadType}
             options={leadTypeSelectOptions}
             placeholder="Select lead type"
-            onChange={(event) => onChange({ leadType: event.target.value })}
+            onChange={(value) => onChange({ leadType: value as string })}
             className="w-full rounded-lg border-slate-300 bg-slate-50 text-sm text-slate-700 ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
           />
         </div>
@@ -62,10 +62,8 @@ export function IdentityCard({
           <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
             Email
           </label>
-
           <div className="relative">
             <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-gray-500" />
-
             <Input
               type="email"
               value={form.email}
@@ -84,7 +82,7 @@ export function IdentityCard({
             value={form.contactType}
             options={contactTypeSelectOptions}
             placeholder="Select contact type"
-            onChange={(event) => onChange({ contactType: event.target.value })}
+            onChange={(value) => onChange({ contactType: value as string })}
             className="w-full rounded-lg border-slate-300 bg-slate-50 text-sm text-slate-700 ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
           />
         </div>

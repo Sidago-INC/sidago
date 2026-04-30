@@ -1,21 +1,20 @@
 import { Button } from "@/components/ui";
+import { CardShell } from "@/components/ui/CardShell";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Save, StickyNote } from "lucide-react";
 
-export function CallNotesCard({
-  notes,
-  onChange,
-  onSave,
-}: {
+type Props = {
   notes: string;
   onChange: (value: string) => void;
   onSave: () => void;
-}) {
+};
+
+export function CallNotesCard({ notes, onChange, onSave }: Props) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-      <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-gray-500">
-        <StickyNote className="h-4 w-4" />
+    <CardShell>
+      <SectionLabel icon={StickyNote} className="mb-3">
         Call Notes
-      </p>
+      </SectionLabel>
       <textarea
         value={notes}
         onChange={(event) => onChange(event.target.value)}
@@ -32,6 +31,6 @@ export function CallNotesCard({
           Save Changes
         </Button>
       </div>
-    </div>
+    </CardShell>
   );
 }

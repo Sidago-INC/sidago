@@ -1,5 +1,6 @@
 import { Agent } from "@/types";
 import { BarChart3 } from "lucide-react";
+import { CompanySymbolBadge } from "@/components/ui";
 import { AgentIdentity } from "./AgentIdentity";
 import { Panel } from "./Panel";
 import { getAgentColor, RANK_STYLES } from "../_lib/utils";
@@ -60,9 +61,9 @@ export function LeaderboardTable({
               <AgentIdentity
                 agent={agent}
                 index={index}
-                meta={agent.brand}
+                meta={<CompanySymbolBadge symbol={agent.brand} index={index} />}
                 nameClassName="truncate text-xs font-semibold text-gray-800 dark:text-gray-100 sm:text-sm"
-                metaClassName="truncate text-[10px] text-gray-400 dark:text-gray-500 sm:text-xs"
+                metaClassName="truncate text-[10px] sm:text-xs"
                 containerClassName="flex items-center gap-2"
               />
             </div>

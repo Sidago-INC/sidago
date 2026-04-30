@@ -8,9 +8,15 @@ export type Props = {
   item: NavigationItem;
   isCollapsed: boolean;
   isActive: boolean;
+  allowLabelWrap?: boolean;
 };
 
-export const SidebarItem = ({ item, isCollapsed, isActive }: Props) => {
+export const SidebarItem = ({
+  item,
+  isCollapsed,
+  isActive,
+  allowLabelWrap = false,
+}: Props) => {
   const Icon = item.icon;
 
   return (
@@ -25,20 +31,24 @@ export const SidebarItem = ({ item, isCollapsed, isActive }: Props) => {
           : "border-transparent text-slate-500 hover:bg-indigo-50 hover:text-indigo-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-indigo-300"
       }`}
     >
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 items-center gap-3 overflow-hidden">
         <Icon
           size={18}
-          className={
+          className={`shrink-0 ${
             isActive
               ? "text-white"
               : "group-hover:text-indigo-700 dark:group-hover:text-indigo-300"
-          }
+          }`}
         />
         {!isCollapsed && (
           <motion.span
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            className="font-semibold text-[0.875rem] tracking-wide whitespace-nowrap overflow-hidden text-ellipsis min-w-0"
+            className={`min-w-0 font-semibold text-[0.875rem] tracking-wide ${
+              allowLabelWrap
+                ? "whitespace-normal break-words leading-snug"
+                : "truncate"
+            }`}
           >
             {item.label}
           </motion.span>

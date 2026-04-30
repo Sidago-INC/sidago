@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Lead } from "@/types";
 import { Info } from "lucide-react";
-import { Modal } from "@/components/ui/Modal";
+import { CardShell, Modal } from "@/components/ui";
 import { AutoCallingBanner } from "./_components/AutoCallingBanner";
 import { CallNotesCard } from "./_components/CallNotesCard";
 import { CallOutcomeCard } from "./_components/CallOutcomeCard";
@@ -18,7 +18,7 @@ import { CallsModalState, createFormStateFromLead } from "@/types";
 import { getAgentKeyFromCookie } from "./_lib/utils";
 import { MessageSquare, NotebookText, Users } from "lucide-react";
 import { WorkToggleRow } from "./_components/WorkToggleRow";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { EmptyState } from "@/components/ui";
 
 export function AgentCalls() {
   const [agentKey] = useState(() => getAgentKeyFromCookie());
@@ -111,7 +111,7 @@ export function AgentCalls() {
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div className="space-y-4 lg:col-span-1">
             <PhoneCard currentLead={currentLead} />
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <CardShell>
               <IdentityCard
                 form={form}
                 leadName={currentLead.full_name}
@@ -125,7 +125,7 @@ export function AgentCalls() {
                   setForm((prev) => ({ ...prev, notWorkAnymore: value }))
                 }
               />
-            </div>
+            </CardShell>
             <DatesCard
               callBackDate={form.callBackDate}
               lastCalledDate={currentLead.last_called_date_sidago}

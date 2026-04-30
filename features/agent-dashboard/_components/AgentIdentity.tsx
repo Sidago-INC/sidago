@@ -5,7 +5,7 @@ import { AgentAvatar } from "./AgentAvatar";
 interface AgentIdentityProps {
   agent: Agent;
   index?: number;
-  meta?: string;
+  meta?: ReactNode;
   aside?: ReactNode;
   avatarSquare?: boolean;
   nameClassName?: string;

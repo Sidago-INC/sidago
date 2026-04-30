@@ -8,6 +8,8 @@ import {
   ThumbsDown,
   ThumbsUp,
 } from "lucide-react";
+import { CardShell } from "@/components/ui/CardShell";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 import { OutcomeButton } from "./OutcomeButton";
 
 const outcomes = [
@@ -65,10 +67,8 @@ export function CallOutcomeCard({
   onSelect: (value: string) => void;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-      <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-gray-500">
-        Call Outcome
-      </p>
+    <CardShell>
+      <SectionLabel className="mb-4">Call Outcome</SectionLabel>
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         {outcomes.map((outcome) => (
           <OutcomeButton
@@ -80,6 +80,6 @@ export function CallOutcomeCard({
           />
         ))}
       </div>
-    </div>
+    </CardShell>
   );
 }

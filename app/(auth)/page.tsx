@@ -1,4 +1,4 @@
-import Login from "./components/Login";
+import Login from "@/features/auth/_components/Login";
 
 export const metadata = {
   title: "Sidago CRM",
@@ -10,6 +10,6 @@ export const metadata = {
   },
 };
 
-export default function page() {
+export default function Page() {
   return <Login />;
 }

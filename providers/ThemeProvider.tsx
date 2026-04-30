@@ -26,22 +26,21 @@ function applyTheme(theme: Theme) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(() => {
-    if (typeof window === "undefined") {
-      return "light";
-    }
+  // Always start with "light" so server and client initial renders match.
+  // The real preference is read in useEffect (client-only) after hydration.
+  const [theme, setThemeState] = useState<Theme>("light");
 
-    const storedTheme = window.localStorage.getItem(
-      STORAGE_KEY,
-    ) as Theme | null;
-    if (storedTheme) {
-      return storedTheme;
-    }
+  useEffect(() => {
+    const stored = window.localStorage.getItem(STORAGE_KEY) as Theme | null;
+    const resolved =
+      stored ??
+      (window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light");
+    setThemeState(resolved);
+    applyTheme(resolved);
+  }, []);
 
-    return window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
-  });
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);

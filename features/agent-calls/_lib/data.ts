@@ -1,17 +1,10 @@
 import { Lead } from "@/types";
+import { CONTACT_TYPE_VALUES } from "@/types/contact-type.types";
+import { LEAD_TYPE_VALUES } from "@/types/lead-type.types";
 
-export const leadTypeOptions = ["General", "Warm", "Hot", "Cold", "Referral"];
+export const leadTypeOptions = LEAD_TYPE_VALUES;
 
-export const contactTypeOptions = [
-  "Prospecting",
-  "Interested",
-  "Not Interested",
-  "No Answer",
-  "Left Message",
-  "Call Lead Back",
-  "Bad Number",
-  "DNC",
-];
+export const contactTypeOptions = CONTACT_TYPE_VALUES;
 
 export const leadsByAgent: Record<string, Lead[]> = {
   mariz: [
