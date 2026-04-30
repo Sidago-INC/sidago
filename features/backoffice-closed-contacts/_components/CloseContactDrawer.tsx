@@ -37,6 +37,11 @@ import { isValidElement, useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import Comments from "@/features/backoffice-shared/Comments";
 import { OutcomeButton } from "@/features/agent-calls/_components/OutcomeButton";
+import {
+  useUpdateLead,
+  type LeadPatchBody,
+} from "@/features/backoffice-shared/use-update-lead";
+import { showErrorToast, showSuccessToast } from "@/lib/toast";
 
 type ClosedContactDrawerProps = {
   data: ClosedContactRow[];
@@ -155,12 +160,26 @@ export function ClosedContactDrawer({
 
   const row = selectedIndex === null ? null : (data[selectedIndex] ?? null);
   const rowKey = row?.email ?? "";
-  const form =
-    formState?.key === rowKey
-      ? formState.value
-      : row
-        ? getEditableState(row)
-        : null;
+  const initialForm = useMemo(
+    () => (row ? getEditableState(row) : null),
+    [row],
+  );
+  const form = formState?.key === rowKey ? formState.value : initialForm;
+
+  const updateLead = useUpdateLead();
+  const isDirty = useMemo(() => {
+    if (!form || !initialForm) return false;
+    // Only persistable fields drive the dirty flag — `notes`, `callBackDate`,
+    // and `selectedOutcome` have no save target so we ignore them here.
+    return (
+      form.fullName !== initialForm.fullName ||
+      form.phone !== initialForm.phone ||
+      form.email !== initialForm.email ||
+      form.contactType !== initialForm.contactType ||
+      form.bentonLeadType !== initialForm.bentonLeadType ||
+      form.doesNotWorkAnymore !== initialForm.doesNotWorkAnymore
+    );
+  }, [form, initialForm]);
 
   const detailItems = useMemo(() => {
     if (!row) return [];
@@ -217,6 +236,47 @@ export function ClosedContactDrawer({
     if (!drawerUrl) return;
     await navigator.clipboard.writeText(drawerUrl);
     setCopied(true);
+  };
+
+  const handleSave = async () => {
+    if (!row || !form || !initialForm) return;
+
+    if (!row.leadId) {
+      showErrorToast(
+        new Error("Cannot save: this row has no leadId (mock data?)"),
+      );
+      return;
+    }
+
+    const body: LeadPatchBody = {};
+    const leadDiff: NonNullable<LeadPatchBody["lead"]> = {};
+
+    if (form.email !== initialForm.email) leadDiff.email = form.email;
+    if (form.contactType !== initialForm.contactType)
+      leadDiff.contact_type = form.contactType;
+    if (form.doesNotWorkAnymore !== initialForm.doesNotWorkAnymore)
+      leadDiff.not_work_anymore = form.doesNotWorkAnymore;
+
+    if (Object.keys(leadDiff).length > 0) body.lead = leadDiff;
+
+    if (form.bentonLeadType !== initialForm.bentonLeadType) {
+      body.brandStates = {
+        benton: { lead_type: form.bentonLeadType },
+      };
+    }
+
+    if (!body.lead && !body.brandStates) {
+      showErrorToast(new Error("No changes to save"));
+      return;
+    }
+
+    try {
+      await updateLead.mutateAsync({ leadId: row.leadId, body });
+      showSuccessToast("Lead updated");
+      setFormState(null);
+    } catch (err) {
+      showErrorToast(err);
+    }
   };
 
   const handlePrint = () => {
@@ -326,7 +386,26 @@ export function ClosedContactDrawer({
           </div>
         </div>
       }
-      // footer={<Comments />}
+      footer={
+        <div className="flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => setFormState(null)}
+            disabled={!isDirty || updateLead.isPending}
+            className="rounded border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+          >
+            Discard
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={!isDirty || updateLead.isPending || !row?.leadId}
+            className="rounded bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {updateLead.isPending ? "Saving…" : "Save"}
+          </button>
+        </div>
+      }
     >
       <div className="space-y-5">
         {/* Company identity */}
@@ -391,7 +470,7 @@ export function ClosedContactDrawer({
         </DetailCard>
 
         <DetailCard label="Notes">
-          <EditableField label="Notes" align="stack">
+          <EditableField label="Notes" align="stack" readOnly>
             <Textarea
               value={form.notes}
               onChange={(event) => updateForm("notes", event.target.value)}
@@ -408,7 +487,7 @@ export function ClosedContactDrawer({
               labelClassName="justify-end"
             />
           </EditableField>
-          <EditableField label="Call Back Date">
+          <EditableField label="Call Back Date" readOnly>
             <DateInput
               value={form.callBackDate}
               onChange={(event) =>
@@ -491,10 +570,12 @@ function EditableField({
   label,
   children,
   align = "row",
+  readOnly = false,
 }: {
   label: string;
   children: React.ReactNode;
   align?: "row" | "stack";
+  readOnly?: boolean;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const preview = getEditablePreview(label, children);
@@ -511,7 +592,18 @@ function EditableField({
         {label}
       </p>
       <div className={align === "stack" ? "w-full" : "w-64 max-w-[65%]"}>
-        {isEditing ? (
+        {readOnly ? (
+          <div
+            aria-readonly
+            className={`w-full rounded border border-slate-200 bg-slate-100 text-xs font-medium text-slate-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400 ${
+              align === "stack"
+                ? "min-h-[98px] px-3 py-2 text-left whitespace-pre-line"
+                : "min-h-[30px] px-3 py-1.5 text-left truncate"
+            }`}
+          >
+            {preview}
+          </div>
+        ) : isEditing ? (
           children
         ) : (
           <div

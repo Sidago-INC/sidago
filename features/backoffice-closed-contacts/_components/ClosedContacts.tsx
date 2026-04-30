@@ -3,6 +3,7 @@
 import clsx from "clsx";
 import React, { useMemo, useState } from "react";
 import { closedContactsTabs, type ClosedContactsTabKey } from "../_lib/data";
+import { useClosedContracts } from "../_lib/use-closed-contacts";
 import { ClosedContactsTable } from "./ClosedContactsTable";
 
 export function ClosedContacts() {
@@ -14,6 +15,11 @@ export function ClosedContacts() {
       closedContactsTabs.find((tab) => tab.key === activeTab) ??
       closedContactsTabs[0],
     [activeTab],
+  );
+
+  const { data, isLoading, isError, error } = useClosedContracts(
+    activeView.category,
+    activeView.brand,
   );
 
   return (
@@ -42,7 +48,17 @@ export function ClosedContacts() {
         </div>
       </div>
 
-      <ClosedContactsTable data={activeView.data} title={activeView.title} />
+      {isLoading ? (
+        <div className="flex min-h-[200px] items-center justify-center text-sm text-gray-500">
+          Loading closed contracts…
+        </div>
+      ) : isError ? (
+        <div className="flex min-h-[200px] items-center justify-center text-sm text-red-500">
+          Failed to load: {error instanceof Error ? error.message : String(error)}
+        </div>
+      ) : (
+        <ClosedContactsTable data={data ?? []} title={activeView.title} />
+      )}
     </div>
   );
 }

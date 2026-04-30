@@ -1,4 +1,8 @@
 export type HotLeadRow = {
+  // UUID from leads.id — populated by server-side report APIs and used as the
+  // target for PATCH /api/leads/:leadId. Optional because mock-data generators
+  // still produce HotLeadRow objects without UUIDs in dev/storybook contexts.
+  leadId?: string;
   lead: string;
   companyName: string;
   fullName: string;
