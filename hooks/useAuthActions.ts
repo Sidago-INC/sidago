@@ -97,10 +97,34 @@ export function useLogin() {
 
 export function useLogout() {
   return useMutation({
-    mutationFn: async () => Promise.resolve(),
+    mutationFn: async () => {
+      const refreshToken = tokenService.getRefreshToken();
+      if (refreshToken) {
+        try {
+          await authApi.logout({ refreshToken });
+        } catch {
+          // Server-side revocation is best-effort; never block logout UX.
+        }
+      }
+    },
     onSuccess: () => {
       setAuthNotice("You have been logged out successfully.");
       clearSessionAndRedirect();
+    },
+  });
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: authApi.changePassword,
+    onSuccess: async () => {
+      showSuccessToast("Password changed. Please sign in again.");
+      tokenService.clear();
+      await delay(800);
+      window.location.href = "/";
+    },
+    onError: (error: MutationError) => {
+      showErrorToast(error);
     },
   });
 }

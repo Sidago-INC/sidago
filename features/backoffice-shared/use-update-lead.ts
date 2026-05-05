@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 
 type Brand = "svg" | "95rm" | "benton";
 
@@ -26,22 +27,16 @@ export type LeadPatchBody = {
   >;
 };
 
-type PatchResponse =
-  | { ok: true; leadId: string; updated: { lead: number; brandStates: Record<string, number> } }
-  | { ok: false; error: string };
+type PatchSuccess = {
+  ok: true;
+  leadId: string;
+  updated: { lead: number; brandStates: Record<string, number> };
+};
 
+// Routes through the shared `api` client so the request automatically gets
+// the Bearer access token plus 401 → silent-refresh → retry behaviour.
 async function patchLead(leadId: string, body: LeadPatchBody) {
-  const res = await fetch(`/api/leads/${leadId}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  const json = (await res.json()) as PatchResponse;
-  if (!res.ok || !json.ok) {
-    const msg = "error" in json ? json.error : `HTTP ${res.status}`;
-    throw new Error(msg);
-  }
-  return json;
+  return (await api.patch(`/leads/${leadId}`, body)) as PatchSuccess;
 }
 
 export function useUpdateLead() {

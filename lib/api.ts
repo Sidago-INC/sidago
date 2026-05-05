@@ -40,7 +40,7 @@ async function request(url: string, options: RequestInit = {}, retry = true) {
       status: res.status,
       message: Array.isArray(data?.message)
         ? data.message
-        : [data?.message || "Something went wrong"],
+        : [data?.message || data?.error || "Something went wrong"],
       code: data?.code || "ERROR",
     };
   }
@@ -54,7 +54,7 @@ async function refreshToken() {
 
     if (!refreshToken) return false;
 
-    const res = await fetch(`${BASE_URL}/refresh`, {
+    const res = await fetch(`${BASE_URL}/auth/refresh`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

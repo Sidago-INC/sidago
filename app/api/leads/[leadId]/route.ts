@@ -25,6 +25,10 @@
 //   • to_be_called_by (full name) → users.full_name lookup (400 if not found,
 //     null clears the assignee)
 //
+// Auth: requires a valid Bearer access token. The user's UUID is bound to the
+// transaction so audit_log rows are attributed to the human via set_config()
+// → trigger reads current_setting('app.current_user_id').
+//
 // Returns:
 //   { ok: true, leadId, updated: { lead?: <count>, brandStates?: <count> } }
 
@@ -38,6 +42,7 @@ import {
   leads,
   users,
 } from "@/lib/db/schema";
+import { getUserFromRequest } from "@/lib/auth/middleware";
 
 const VALID_BRANDS = ["svg", "95rm", "benton"] as const;
 type ValidBrand = (typeof VALID_BRANDS)[number];
@@ -54,7 +59,7 @@ type LeadFields = {
 
 type BrandStateFields = {
   lead_type?: string;
-  to_be_called_by?: string | null; // empty string / null clears the assignee
+  to_be_called_by?: string | null;
   last_called_date?: string | null;
 };
 
@@ -63,8 +68,6 @@ type PatchBody = {
   brandStates?: Partial<Record<ValidBrand, BrandStateFields>>;
 };
 
-// Look up a user UUID by display name. Tries `full_name` first, then falls
-// back to "first_name last_name". Returns null if the input is empty.
 async function resolveUserId(
   displayName: string | null | undefined,
 ): Promise<{ ok: true; id: string | null } | { ok: false; error: string }> {
@@ -113,6 +116,14 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ leadId: string }> },
 ) {
+  const auth = await getUserFromRequest(request);
+  if (!auth) {
+    return NextResponse.json(
+      { ok: false, error: "Unauthorized" },
+      { status: 401 },
+    );
+  }
+
   const { leadId } = await params;
 
   if (!leadId) {
@@ -132,8 +143,6 @@ export async function PATCH(
     );
   }
 
-  // Verify the lead exists up front so we don't run partial updates on a
-  // missing row.
   const existing = await db
     .select({ id: leads.id })
     .from(leads)
@@ -147,97 +156,130 @@ export async function PATCH(
     );
   }
 
-  let leadUpdates = 0;
-  const brandUpdates: Record<string, number> = {};
+  // ------ Pre-resolve every lookup before opening the transaction ------
+  // Any validation that returns 400 must happen here so the transaction
+  // never opens for a request that's destined to fail.
 
-  try {
-    // --- Lead-level fields ---
-    if (body.lead) {
-      const setClause: Record<string, unknown> = {};
+  let leadSetClause: Record<string, unknown> | null = null;
 
-      if (body.lead.full_name !== undefined)
-        setClause.fullName = body.lead.full_name;
-      if (body.lead.phone !== undefined) setClause.phone = body.lead.phone;
-      if (body.lead.email !== undefined) setClause.email = body.lead.email;
-      if (body.lead.role !== undefined) setClause.role = body.lead.role;
-      if (body.lead.contact_type !== undefined)
-        setClause.contactType = body.lead.contact_type;
-      if (body.lead.not_work_anymore !== undefined)
-        setClause.notWorkAnymore = body.lead.not_work_anymore;
+  if (body.lead) {
+    const sc: Record<string, unknown> = {};
 
-      if (body.lead.company_name !== undefined) {
-        const resolved = await resolveCompanyId(body.lead.company_name);
+    if (body.lead.full_name !== undefined) sc.fullName = body.lead.full_name;
+    if (body.lead.phone !== undefined) sc.phone = body.lead.phone;
+    if (body.lead.email !== undefined) sc.email = body.lead.email;
+    if (body.lead.role !== undefined) sc.role = body.lead.role;
+    if (body.lead.contact_type !== undefined)
+      sc.contactType = body.lead.contact_type;
+    if (body.lead.not_work_anymore !== undefined)
+      sc.notWorkAnymore = body.lead.not_work_anymore;
+
+    if (body.lead.company_name !== undefined) {
+      const resolved = await resolveCompanyId(body.lead.company_name);
+      if (!resolved.ok) {
+        return NextResponse.json(
+          { ok: false, error: resolved.error },
+          { status: 400 },
+        );
+      }
+      sc.companyId = resolved.id;
+    }
+
+    if (Object.keys(sc).length > 0) {
+      sc.updatedAt = new Date().toISOString();
+      leadSetClause = sc;
+    }
+  }
+
+  type ResolvedBrandUpdate = {
+    brandCode: ValidBrand;
+    brandId: string;
+    setClause: Record<string, unknown>;
+  };
+  const resolvedBrandUpdates: ResolvedBrandUpdate[] = [];
+
+  if (body.brandStates) {
+    for (const [brandCode, state] of Object.entries(body.brandStates)) {
+      if (!VALID_BRANDS.includes(brandCode as ValidBrand)) {
+        return NextResponse.json(
+          { ok: false, error: `Invalid brand: ${brandCode}` },
+          { status: 400 },
+        );
+      }
+      if (!state) continue;
+
+      const sc: Record<string, unknown> = {};
+
+      if (state.lead_type !== undefined) sc.leadType = state.lead_type;
+      if (state.last_called_date !== undefined) {
+        sc.lastCalledDate = state.last_called_date || null;
+      }
+      if (state.to_be_called_by !== undefined) {
+        const resolved = await resolveUserId(state.to_be_called_by);
         if (!resolved.ok) {
           return NextResponse.json(
             { ok: false, error: resolved.error },
             { status: 400 },
           );
         }
-        setClause.companyId = resolved.id;
+        sc.toBeCalledByUserId = resolved.id;
       }
 
-      if (Object.keys(setClause).length > 0) {
-        setClause.updatedAt = new Date().toISOString();
-        const result = await db
+      if (Object.keys(sc).length === 0) continue;
+      sc.updatedAt = new Date().toISOString();
+
+      const brandRow = await db
+        .select({ id: brands.id })
+        .from(brands)
+        .where(eq(brands.code, brandCode))
+        .limit(1);
+      if (!brandRow.length) continue;
+
+      resolvedBrandUpdates.push({
+        brandCode: brandCode as ValidBrand,
+        brandId: brandRow[0].id,
+        setClause: sc,
+      });
+    }
+  }
+
+  // ------ Apply writes in one transaction with audit attribution ------
+
+  let leadUpdates = 0;
+  const brandUpdates: Record<string, number> = {};
+
+  try {
+    await db.transaction(async (tx) => {
+      // set_config(...) is the parameter-safe equivalent of SET LOCAL.
+      // The audit_row_changes() trigger reads these via current_setting().
+      await tx.execute(
+        sql`SELECT set_config('app.current_user_id', ${auth.userId}, true)`,
+      );
+      await tx.execute(
+        sql`SELECT set_config('app.actor_type', 'user', true)`,
+      );
+
+      if (leadSetClause) {
+        const result = await tx
           .update(leads)
-          .set(setClause)
+          .set(leadSetClause)
           .where(eq(leads.id, leadId));
         leadUpdates = (result as { count?: number }).count ?? 1;
       }
-    }
 
-    // --- Brand-state fields ---
-    if (body.brandStates) {
-      for (const [brandCode, state] of Object.entries(body.brandStates)) {
-        if (!VALID_BRANDS.includes(brandCode as ValidBrand)) {
-          return NextResponse.json(
-            { ok: false, error: `Invalid brand: ${brandCode}` },
-            { status: 400 },
-          );
-        }
-        if (!state) continue;
-
-        const setClause: Record<string, unknown> = {};
-
-        if (state.lead_type !== undefined) setClause.leadType = state.lead_type;
-        if (state.last_called_date !== undefined) {
-          setClause.lastCalledDate = state.last_called_date || null;
-        }
-        if (state.to_be_called_by !== undefined) {
-          const resolved = await resolveUserId(state.to_be_called_by);
-          if (!resolved.ok) {
-            return NextResponse.json(
-              { ok: false, error: resolved.error },
-              { status: 400 },
-            );
-          }
-          setClause.toBeCalledByUserId = resolved.id;
-        }
-
-        if (Object.keys(setClause).length === 0) continue;
-        setClause.updatedAt = new Date().toISOString();
-
-        // Find the brand row + the lead_brand_state row.
-        const brandRow = await db
-          .select({ id: brands.id })
-          .from(brands)
-          .where(eq(brands.code, brandCode))
-          .limit(1);
-
-        if (!brandRow.length) continue;
-
-        const result = await db
+      for (const up of resolvedBrandUpdates) {
+        const result = await tx
           .update(leadBrandState)
-          .set(setClause)
+          .set(up.setClause)
           .where(
             and(
               eq(leadBrandState.leadId, leadId),
-              eq(leadBrandState.brandId, brandRow[0].id),
+              eq(leadBrandState.brandId, up.brandId),
             ),
           );
-        brandUpdates[brandCode] = (result as { count?: number }).count ?? 0;
+        brandUpdates[up.brandCode] = (result as { count?: number }).count ?? 0;
       }
-    }
+    });
 
     return NextResponse.json({
       ok: true,

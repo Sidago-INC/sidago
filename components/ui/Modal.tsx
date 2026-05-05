@@ -3,6 +3,7 @@
 import { AnimatePresence, motion, Variants } from "framer-motion";
 import { X } from "lucide-react";
 import { ReactNode, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "./Button";
 
 export type ModalDirection = "top" | "bottom" | "left" | "right" | "center";
@@ -83,7 +84,7 @@ export function Modal({
     return () => window.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
 
-  return (
+  const node = (
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -173,4 +174,11 @@ export function Modal({
       )}
     </AnimatePresence>
   );
+
+  // Portal to document.body so the modal escapes any ancestor that creates a
+  // containing block for fixed positioning (transform, filter, will-change, etc).
+  // Without this, opening a modal from inside e.g. the header bar clips the
+  // modal to that ancestor instead of the viewport.
+  if (typeof document === "undefined") return node;
+  return createPortal(node, document.body);
 }
